@@ -1,0 +1,170 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition — Warm Luxury Architectural Theme
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-serif: "Newsreader", "Playfair Display", Georgia, serif;
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /* Warm Luxury Parchment Palette */
+  --background: oklch(0.972 0.012 85);
+  --foreground: oklch(0.22 0.025 60);
+  
+  --card: oklch(0.948 0.016 82);
+  --card-foreground: oklch(0.22 0.025 60);
+
+  --popover: oklch(0.948 0.016 82);
+  --popover-foreground: oklch(0.22 0.025 60);
+
+  --primary: oklch(0.22 0.025 60);
+  --primary-foreground: oklch(0.972 0.012 85);
+
+  --secondary: oklch(0.92 0.018 80);
+  --secondary-foreground: oklch(0.22 0.025 60);
+
+  --muted: oklch(0.92 0.018 80);
+  --muted-foreground: oklch(0.46 0.022 65);
+
+  --accent: oklch(0.55 0.11 55);
+  --accent-foreground: oklch(0.98 0.008 85);
+
+  --destructive: oklch(0.55 0.18 25);
+  --destructive-foreground: oklch(0.98 0.005 85);
+
+  --border: oklch(0.885 0.018 80);
+  --input: oklch(0.885 0.018 80);
+  --ring: oklch(0.22 0.025 60);
+
+  --surface-elevated: oklch(0.948 0.016 82);
+  --shadow-soft: 0 14px 36px -12px oklch(0.2 0.02 60 / 0.08);
+  --gradient-warm: linear-gradient(135deg, oklch(0.982 0.01 85), oklch(0.94 0.018 80));
+
+  --chart-1: oklch(0.45 0.1 55);
+  --chart-2: oklch(0.55 0.1 80);
+  --chart-3: oklch(0.35 0.05 60);
+  --chart-4: oklch(0.65 0.12 50);
+  --chart-5: oklch(0.5 0.08 70);
+
+  --sidebar: oklch(0.948 0.016 82);
+  --sidebar-foreground: oklch(0.22 0.025 60);
+  --sidebar-primary: oklch(0.22 0.025 60);
+  --sidebar-primary-foreground: oklch(0.972 0.012 85);
+  --sidebar-accent: oklch(0.92 0.018 80);
+  --sidebar-accent-foreground: oklch(0.22 0.025 60);
+  --sidebar-border: oklch(0.885 0.018 80);
+  --sidebar-ring: oklch(0.22 0.025 60);
+}
+
+.dark {
+  /* Enforce the warm luxury cream theme for dark class as well */
+  --background: oklch(0.972 0.012 85);
+  --foreground: oklch(0.22 0.025 60);
+  --card: oklch(0.948 0.016 82);
+  --card-foreground: oklch(0.22 0.025 60);
+  --popover: oklch(0.948 0.016 82);
+  --popover-foreground: oklch(0.22 0.025 60);
+  --primary: oklch(0.22 0.025 60);
+  --primary-foreground: oklch(0.972 0.012 85);
+  --secondary: oklch(0.92 0.018 80);
+  --secondary-foreground: oklch(0.22 0.025 60);
+  --muted: oklch(0.92 0.018 80);
+  --muted-foreground: oklch(0.46 0.022 65);
+  --accent: oklch(0.55 0.11 55);
+  --accent-foreground: oklch(0.98 0.008 85);
+  --destructive: oklch(0.55 0.18 25);
+  --destructive-foreground: oklch(0.98 0.005 85);
+  --border: oklch(0.885 0.018 80);
+  --input: oklch(0.885 0.018 80);
+  --ring: oklch(0.22 0.025 60);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, .font-serif-heading {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+  }
+
+  /* Safe-area support for iPhones and notched devices */
+  html {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+}
+
+.label-mono {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted-foreground);
+  font-weight: 500;
+}
+
+.hero-glow {
+  background: radial-gradient(circle at 50% 20%, oklch(0.988 0.008 85), oklch(0.955 0.015 82));
+}
+
+/* Mobile utility: prevent horizontal overflow on the whole page */
+@layer utilities {
+  .overflow-x-clip {
+    overflow-x: clip;
+  }
+}
