@@ -1,16 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 /**
- * GET    /api/panoramas           -> list DB panoramas (filePath + designedFilePath + status)
- * DELETE /api/panoramas/:id       -> delete a panorama (row + storage files)
- * POST   /api/panoramas/design    -> n8n callback: receive the generated designed panorama
+ * GET    /api/panoramas             -> list DB panoramas (filePath + designedFilePath + status)
+ * DELETE /api/panoramas/:id         -> delete a panorama (row + storage files)
+ * POST   /api/panoramas/design      -> n8n callback: receive the generated designed panorama
+ * POST   /api/panoramas/generated   -> n8n callback: receive generated panorama file (multipart)
  */
 export const Route = createFileRoute("/api/panoramas/$")({
   server: {
     handlers: {
       ANY: async ({ request, params }) => {
-        const { handleListPanoramas, handleDeletePanorama, handleReceiveDesignedPanorama } =
-          await import("@/lib/photos");
+        const {
+          handleListPanoramas,
+          handleDeletePanorama,
+          handleReceiveDesignedPanorama,
+          handleReceiveGeneratedPanorama,
+        } = await import("@/lib/photos");
 
         const method = request.method.toUpperCase();
         const splat = params._splat;
@@ -34,6 +39,10 @@ export const Route = createFileRoute("/api/panoramas/$")({
 
         if (method === "POST" && splat === "design") {
           return handleReceiveDesignedPanorama(request);
+        }
+
+        if (method === "POST" && splat === "generated") {
+          return handleReceiveGeneratedPanorama(request);
         }
 
         return Response.json(

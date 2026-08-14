@@ -1,7 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useRef, useState } from "react";
+import type { ChangeEvent } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
+import { savePanorama } from "@/lib/photos";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -43,6 +47,76 @@ const features = [
   { icon: "💾", title: "Multiple designs", body: "Save Original, Modern, Gaming, Luxury and switch between them in 3D." },
 ];
 
+function UploadPanorama({ variant = "card" }: { variant?: "card" | "button" }) {
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || busy) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      setBusy(true);
+      try {
+        await savePanorama({
+          data: { projectId: "default-project", image: String(reader.result) },
+        });
+        toast.success("Panorama uploaded ✓");
+        navigate({ to: "/vr" });
+      } catch (error) {
+        console.error("Panorama upload error:", error);
+        toast.error("Panorama upload failed. Check the server terminal.");
+      } finally {
+        setBusy(false);
+      }
+    };
+    reader.onerror = () => toast.error("Could not read the selected file.");
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => fileInputRef.current?.click()}
+        className={
+          variant === "card"
+            ? "group rounded-xl border bg-card p-4 text-left transition-colors hover:border-primary disabled:opacity-60 sm:p-5"
+            : "inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
+        }
+      >
+        {variant === "card" ? (
+          <>
+            <span className="text-2xl">🌐</span>
+            <h2 className="mt-3 text-lg font-semibold">Upload Panorama</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Upload a 360° panorama and explore it in VR.
+            </p>
+            <span className="mt-3 inline-block text-sm font-medium text-primary">
+              {busy ? "Uploading…" : "Upload →"}
+            </span>
+          </>
+        ) : busy ? (
+          "Uploading Panorama…"
+        ) : (
+          "🌐 Upload Panorama"
+        )}
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFile}
+      />
+    </>
+  );
+}
+
 function Landing() {
   return (
     <div className="min-h-screen">
@@ -62,7 +136,7 @@ function Landing() {
                 experience in VR.
               </p>
 
-              <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2">
+              <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 lg:grid-cols-3">
                 <Link
                   to="/capture"
                   className="group rounded-xl border bg-card p-4 transition-colors hover:border-primary sm:p-5"
@@ -76,6 +150,7 @@ function Landing() {
                     Start capture →
                   </span>
                 </Link>
+                <UploadPanorama variant="card" />
                 <Link
                   to="/upload"
                   className="group rounded-xl border bg-card p-4 transition-colors hover:border-accent sm:p-5"
@@ -138,6 +213,7 @@ function Landing() {
               <Button asChild size="lg">
                 <Link to="/capture">📸 Capture My Room</Link>
               </Button>
+              <UploadPanorama variant="button" />
               <Button asChild size="lg" variant="secondary">
                 <Link to="/upload">📐 Upload 2D Floor Plan (Still not working) </Link>
               </Button>

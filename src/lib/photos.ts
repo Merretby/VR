@@ -285,9 +285,24 @@ export const savePanorama = createServerFn({
 
       console.log("PANORAMA DB INSERT OK", panorama);
 
+      // Trigger the n8n workflow (best-effort). On failure the panorama stays
+      // available with status "pending" — the original is never deleted.
+      const status = await triggerN8nWorkflow(panorama);
+
+      if (status !== panorama.status) {
+        const { error: statusUpdateError } = await supabase
+          .from("panoramas")
+          .update({ status })
+          .eq("id", panorama.id);
+
+        if (statusUpdateError) {
+          console.error("PANORAMA STATUS UPDATE ERROR", statusUpdateError);
+        }
+      }
+
       console.log("SAVE PANORAMA COMPLETED", {
         panoramaId: panorama.id,
-        status: panorama.status,
+        status,
         filePath: panorama.file_path,
       });
 
@@ -298,7 +313,7 @@ export const savePanorama = createServerFn({
 
         panoramaId: panorama.id,
 
-        status: panorama.status,
+        status,
 
         designedFilePath: panorama.designed_file_path,
       };
@@ -308,6 +323,126 @@ export const savePanorama = createServerFn({
       throw error;
     }
   });
+
+// =====================================================
+// N8N WEBHOOK TRIGGER
+// =====================================================
+// After a panorama is created we POST its downloadable URL(s) to the n8n
+// workflow (N8N_PANORAMA_WEBHOOK_URL). The backend never calls OpenAI itself.
+//
+// Status behaviour:
+//   - insert          -> "pending"   (created, not yet dispatched)
+//   - webhook success -> "processing" (n8n has started generation)
+//   - webhook failure -> "pending"    (generation never started; original stays)
+//   - generation done -> "completed" (see /api/panoramas/generated)
+//   - generation fail -> "failed"    (see /api/panoramas/generated)
+
+const N8N_WEBHOOK_TIMEOUT_MS = 10_000;
+
+export async function toDownloadableUrl(pathOrUrl: string): Promise<string> {
+  if (/^https?:\/\//i.test(pathOrUrl)) {
+    return pathOrUrl;
+  }
+
+  const { supabase, SUPABASE_BUCKET } = await import("./supabase");
+
+  const { data: publicUrlData } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(pathOrUrl);
+
+  return publicUrlData.publicUrl;
+}
+
+async function resolveVisionBoardPath(projectId: string): Promise<string | null> {
+  const { supabase } = await import("./supabase");
+
+  const { data } = await supabase
+    .from("projects")
+    .select("vision_board_path")
+    .eq("id", projectId)
+    .maybeSingle();
+
+  if (!data?.vision_board_path) {
+    return null;
+  }
+
+  return toDownloadableUrl(data.vision_board_path);
+}
+
+function timingSafeEqualStrings(a: string, b: string): boolean {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  let result = 0;
+
+  for (let i = 0; i < left.length; i++) {
+    result |= left[i]! ^ right[i]!;
+  }
+
+  return result === 0;
+}
+
+async function triggerN8nWorkflow(panorama: {
+  id: string;
+  project_id: string;
+  file_path: string;
+}): Promise<"pending" | "processing"> {
+  const webhookUrl = process.env['N8N_PANORAMA_WEBHOOK_URL'];
+
+  if (!webhookUrl) {
+    console.log("N8N_PANORAMA_WEBHOOK_URL not configured; skipping n8n trigger");
+
+    return "pending";
+  }
+
+  const panoramaPath = await toDownloadableUrl(panorama.file_path);
+
+  const visionBoardPath = await resolveVisionBoardPath(panorama.project_id);
+
+  const payload: Record<string, string | null> = {
+    panoramaId: panorama.id,
+    projectId: panorama.project_id,
+    panoramaPath,
+    visionBoardPath,
+  };
+
+  console.log("TRIGGERING N8N WORKFLOW", payload);
+
+  const controller = new AbortController();
+
+  const timer = setTimeout(() => controller.abort(), N8N_WEBHOOK_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+
+      console.error("N8N WEBHOOK NON-2XX RESPONSE", response.status, text.slice(0, 200));
+
+      return "pending";
+    }
+
+    console.log("N8N WEBHOOK OK", response.status);
+
+    return "processing";
+  } catch (error) {
+    console.error("N8N WEBHOOK TRIGGER FAILED", error instanceof Error ? error.message : error);
+
+    return "pending";
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 // =====================================================
 // COMPLETE PANORAMA DESIGN
@@ -374,7 +509,7 @@ export type PanoramaRecord = {
   projectId: string;
   filePath: string;
   designedFilePath: string | null;
-  status: "pending" | "completed";
+  status: "pending" | "processing" | "completed" | "failed";
   createdAt: string;
 };
 
@@ -647,3 +782,336 @@ export async function handleReceiveDesignedPanorama(request: Request): Promise<R
     );
   }
 }
+
+// =====================================================
+// N8N GENERATED PANORAMA ENDPOINT
+// =====================================================
+// POST /api/panoramas/generated
+// Content-Type: multipart/form-data
+//   panoramaId         - the panorama id (must exist)
+//   projectId          - the project id (must match the panorama's project)
+//   generatedPanorama  - the generated/redesigned image file
+//
+// The designed file is stored separately from the original (filePath is never
+// touched). On success: designedFilePath + status="completed".
+// On any failure: status="failed", original remains intact.
+
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+const MAX_GENERATED_FILE_SIZE = 25 * 1024 * 1024; // 25MB
+
+export async function handleReceiveGeneratedPanorama(request: Request): Promise<Response> {
+  const crypto = await import("crypto");
+
+  const { supabase, SUPABASE_BUCKET } = await import("./supabase");
+
+  let panoramaId = "";
+
+  try {
+    const contentType = request.headers.get("content-type") ?? "";
+
+    if (!contentType.includes("multipart/form-data")) {
+      return Response.json(
+        { success: false, message: "Content-Type must be multipart/form-data" },
+        { status: 400 },
+      );
+    }
+
+    // Optional shared-secret authentication for n8n.
+    const secret = process.env['N8N_GENERATED_PANORAMA_SECRET'];
+
+    if (secret) {
+      const provided = request.headers.get("x-panorama-secret");
+
+      if (!provided || !timingSafeEqualStrings(secret, provided)) {
+        return Response.json({ success: false, message: "Unauthorized" }, { status: 401 });
+      }
+    }
+
+    const formData = await request.formData();
+
+    const panoramaIdValue = formData.get("panoramaId");
+
+    const projectId = formData.get("projectId");
+
+    const generatedFile = formData.get("generatedPanorama");
+
+    if (typeof panoramaIdValue !== "string" || !panoramaIdValue) {
+      return Response.json({ success: false, message: "Missing panoramaId" }, { status: 400 });
+    }
+
+    panoramaId = panoramaIdValue;
+
+    if (typeof projectId !== "string" || !projectId) {
+      return Response.json({ success: false, message: "Missing projectId" }, { status: 400 });
+    }
+
+    if (!(generatedFile instanceof File)) {
+      return Response.json(
+        { success: false, message: "Missing generatedPanorama file" },
+        { status: 400 },
+      );
+    }
+
+    // Step 1 — Verify panorama exists.
+    const { data: panorama, error: findError } = await supabase
+      .from("panoramas")
+      .select("project_id, file_path")
+      .eq("id", panoramaId)
+      .maybeSingle();
+
+    if (findError) {
+      throw findError;
+    }
+
+    if (!panorama) {
+      return Response.json({ success: false, message: "Panorama not found" }, { status: 404 });
+    }
+
+    // Step 2 — Verify the panorama belongs to the supplied project.
+    if (panorama.project_id !== projectId) {
+      return Response.json({ success: false, message: "Project mismatch" }, { status: 403 });
+    }
+
+    // Step 3 — Validate the uploaded file (never trust n8n's filename/type).
+    if (!ALLOWED_IMAGE_TYPES.includes(generatedFile.type)) {
+      return Response.json(
+        { success: false, message: `Unsupported image type: ${generatedFile.type}` },
+        { status: 400 },
+      );
+    }
+
+    if (generatedFile.size > MAX_GENERATED_FILE_SIZE) {
+      return Response.json(
+        { success: false, message: "Generated panorama file too large" },
+        { status: 400 },
+      );
+    }
+
+    const buffer = Buffer.from(await generatedFile.arrayBuffer());
+
+    const extension = getExtension(generatedFile.type);
+
+    // Step 4 — Save separately from the original.
+    const storagePath = `projects/${projectId}/panoramas-designed/${panoramaId}-${crypto.randomUUID()}.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(SUPABASE_BUCKET)
+      .upload(storagePath, buffer, {
+        contentType: generatedFile.type,
+        upsert: false,
+        cacheControl: "3600",
+      });
+
+    if (uploadError) {
+      console.error("GENERATED PANORAMA STORAGE ERROR", uploadError);
+
+      throw uploadError;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from(SUPABASE_BUCKET)
+      .getPublicUrl(storagePath);
+
+    const designedFilePath = publicUrlData.publicUrl;
+
+    // Step 5 — Update only designedFilePath + status. filePath untouched.
+    const { data: updated, error: updateError } = await supabase
+      .from("panoramas")
+      .update({
+        designed_file_path: designedFilePath,
+        status: "completed",
+      })
+      .eq("id", panoramaId)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error("GENERATED PANORAMA DB UPDATE ERROR", updateError);
+
+      throw updateError;
+    }
+
+    console.log("GENERATED PANORAMA ACCEPTED", updated);
+
+    // Step 6 — Return success.
+    return Response.json({
+      success: true,
+      panoramaId,
+      projectId,
+      status: "completed",
+      designedFilePath,
+    });
+  } catch (error) {
+    console.error("GENERATED PANORAMA PROCESSING ERROR", error);
+
+    // Mark failed, never touch the original.
+    if (panoramaId) {
+      try {
+        await supabase.from("panoramas").update({ status: "failed" }).eq("id", panoramaId);
+      } catch (statusError) {
+        console.error("GENERATED PANORAMA FAILED STATUS ERROR", statusError);
+      }
+    }
+
+    return Response.json(
+      {
+        success: false,
+        message: "Failed to process generated panorama",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+// =====================================================
+// SAVE VISION BOARD
+// =====================================================
+// Uploads a vision board image for a project and saves
+// the public URL to projects.vision_board_path.
+// The URL is automatically included in the n8n webhook
+// payload via resolveVisionBoardPath().
+
+export const saveVisionBoard = createServerFn({
+  method: 'POST',
+})
+  .validator((data: { projectId: string; image: string }) => data)
+  .handler(async ({ data }) => {
+    const crypto = await import('crypto');
+
+    const { supabase, SUPABASE_BUCKET } = await import('./supabase');
+
+    try {
+      const { projectId, image } = data;
+
+      console.log('SAVE VISION BOARD CALLED', {
+        projectId,
+        imageLength: image?.length,
+      });
+
+      if (!projectId) {
+        throw new Error('Missing projectId');
+      }
+
+      if (!image) {
+        throw new Error('Missing image');
+      }
+
+      // Ensure project exists, create if not
+      const { data: existingProject, error: projectFindError } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('id', projectId)
+        .maybeSingle();
+
+      if (projectFindError) {
+        throw projectFindError;
+      }
+
+      if (!existingProject) {
+        const { error: projectCreateError } = await supabase
+          .from('projects')
+          .insert({ id: projectId });
+
+        if (projectCreateError) {
+          throw projectCreateError;
+        }
+      }
+
+      // Convert base64 image
+      const buffer = base64ToBuffer(image);
+      const mimeType = getMimeType(image);
+      const extension = getExtension(mimeType);
+
+      // Always create a fresh vision board file for this project
+      const boardId = crypto.randomUUID();
+      const storagePath = `projects/${projectId}/vision-board/${boardId}.${extension}`;
+
+      console.log('UPLOADING VISION BOARD TO STORAGE', {
+        bucket: SUPABASE_BUCKET,
+        storagePath,
+        mimeType,
+        size: buffer.length,
+      });
+
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from(SUPABASE_BUCKET)
+        .upload(storagePath, buffer, {
+          contentType: mimeType,
+          upsert: false,
+          cacheControl: '3600',
+        });
+
+      if (storageError) {
+        console.error('VISION BOARD STORAGE ERROR', storageError);
+        throw storageError;
+      }
+
+      console.log('VISION BOARD STORAGE UPLOAD OK', storageData);
+
+      // Build public URL
+      const { data: publicUrlData } = supabase.storage
+        .from(SUPABASE_BUCKET)
+        .getPublicUrl(storageData.path);
+
+      const visionBoardPath = publicUrlData.publicUrl;
+
+      // Save URL to the project row
+      const { error: updateError } = await supabase
+        .from('projects')
+        .update({ vision_board_path: visionBoardPath })
+        .eq('id', projectId);
+
+      if (updateError) {
+        console.error('VISION BOARD PROJECT UPDATE ERROR', updateError);
+        // Clean up orphaned storage file
+        await supabase.storage.from(SUPABASE_BUCKET).remove([storagePath]);
+        throw updateError;
+      }
+
+      console.log('VISION BOARD SAVED', { projectId, visionBoardPath });
+
+      return {
+        success: true,
+        visionBoardPath,
+      };
+    } catch (error) {
+      console.error('Backend vision board save error:', error);
+      throw error;
+    }
+  });
+
+// =====================================================
+// GET PROJECT VISION BOARD URL
+// =====================================================
+// Returns the public URL of the project's current
+// vision board, or null if none has been uploaded.
+
+export const getProjectVisionBoard = createServerFn({
+  method: 'GET',
+})
+  .validator((data: { projectId: string }) => data)
+  .handler(async ({ data }) => {
+    const { supabase } = await import('./supabase');
+
+    const { projectId } = data;
+
+    if (!projectId) {
+      throw new Error('Missing projectId');
+    }
+
+    const { data: project, error } = await supabase
+      .from('projects')
+      .select('vision_board_path')
+      .eq('id', projectId)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      success: true,
+      visionBoardPath: project?.vision_board_path ?? null,
+    };
+  });

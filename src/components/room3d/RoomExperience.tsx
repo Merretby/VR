@@ -8,6 +8,7 @@ import { RoomScene } from "./RoomScene";
 import type { Design, FloorPlan } from "@/lib/room-model";
 import { Button } from "@/components/ui/button";
 import { capture360Panorama, downloadDataUrl } from "@/lib/panorama-export";
+import { savePanorama } from "@/lib/photos";
 import { toast } from "sonner";
 
 export type ViewMode = "orbit" | "top" | "panorama";
@@ -21,11 +22,13 @@ const store = createXRStore();
  */
 function PanoramaExporterBridge({
   onRegisterExport,
+  onRegisterCapture,
   plan,
   autoCapture,
   onAutoCapture,
 }: {
   onRegisterExport: (fn: () => void) => void;
+  onRegisterCapture: (fn: () => string) => void;
   plan: FloorPlan;
   autoCapture?: boolean | undefined;
   onAutoCapture?: ((dataUrl: string) => void) | undefined;
@@ -41,6 +44,10 @@ function PanoramaExporterBridge({
     },
     [gl, scene, plan],
   );
+
+  useEffect(() => {
+    onRegisterCapture(() => capture(4096));
+  }, [onRegisterCapture, capture]);
 
   useEffect(() => {
     onRegisterExport(() => {
@@ -83,7 +90,11 @@ function CameraRig({ mode, plan }: { mode: ViewMode; plan: FloorPlan }) {
         plan.lengthM * 1.9,
       );
     } else if (mode === "top") {
-      camera.position.set(plan.widthM / 2, Math.max(plan.widthM, plan.lengthM) * 1.7, plan.lengthM / 2 + 0.001);
+      camera.position.set(
+        plan.widthM / 2,
+        Math.max(plan.widthM, plan.lengthM) * 1.7,
+        plan.lengthM / 2 + 0.001,
+      );
     } else if (mode === "panorama") {
       camera.position.set(plan.widthM / 2, 1.6, plan.lengthM / 2);
     }
@@ -138,7 +149,9 @@ export default function RoomExperience({
   const [mode, setMode] = useState<ViewMode>("orbit");
   const [userShowCeiling, setUserShowCeiling] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  const [isEnteringVR, setIsEnteringVR] = useState(false);
   const exporterRef = useRef<(() => void) | null>(null);
+  const captureRef = useRef<(() => string) | null>(null);
   const navigate = useNavigate();
 
   // In Top View, ceiling is ALWAYS hidden so user can see inside the room floor plan
@@ -147,6 +160,35 @@ export default function RoomExperience({
   const handleRegisterExport = useCallback((fn: () => void) => {
     exporterRef.current = fn;
   }, []);
+
+  const handleRegisterCapture = useCallback((fn: () => string) => {
+    captureRef.current = fn;
+  }, []);
+
+  const handleEnterVR = async () => {
+    if (!captureRef.current) {
+      toast.error("Panorama renderer is not ready yet.");
+      return;
+    }
+
+    setIsEnteringVR(true);
+    toast.info("Capturing 360° panorama…");
+
+    try {
+      const dataUrl = captureRef.current();
+      const result = await savePanorama({
+        data: { projectId: "default-project", image: dataUrl },
+      });
+      toast.success("360° panorama saved — entering VR");
+      console.log("Panorama saved:", result.filePath);
+    } catch (err) {
+      console.error("Enter VR panorama save failed:", err);
+      toast.error("Panorama could not be saved, but you can still enter VR.");
+    } finally {
+      setIsEnteringVR(false);
+      navigate({ to: "/vr" });
+    }
+  };
 
   const handleDownloadPanorama = () => {
     if (!exporterRef.current) {
@@ -175,7 +217,12 @@ export default function RoomExperience({
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-xl border bg-card">
-      <Canvas shadows dpr={[1, 2]} camera={{ fov: 62, near: 0.05, far: 200 }} gl={{ preserveDrawingBuffer: true }}>
+      <Canvas
+        shadows
+        dpr={[1, 2]}
+        camera={{ fov: 62, near: 0.05, far: 200 }}
+        gl={{ preserveDrawingBuffer: true }}
+      >
         <color attach="background" args={["#14161a"]} />
         <XR store={store}>
           <XROrigin position={[plan.widthM / 2, 0, plan.lengthM - 0.9]} />
@@ -193,6 +240,7 @@ export default function RoomExperience({
         <CameraRig mode={mode} plan={plan} />
         <PanoramaExporterBridge
           onRegisterExport={handleRegisterExport}
+          onRegisterCapture={handleRegisterCapture}
           plan={plan}
           autoCapture={autoCapturePanorama}
           onAutoCapture={onAutoCapturePanorama}
@@ -235,8 +283,8 @@ export default function RoomExperience({
           >
             📸 Download Panorama
           </Button>
-          <Button size="sm" onClick={() => navigate({ to: "/vr" })}>
-            🥽 Enter VR
+          <Button size="sm" onClick={handleEnterVR} disabled={isEnteringVR}>
+            {isEnteringVR ? "Capturing…" : "🥽 Enter VR"}
           </Button>
         </div>
       </div>
@@ -249,4 +297,3 @@ export default function RoomExperience({
     </div>
   );
 }
-

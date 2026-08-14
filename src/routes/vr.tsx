@@ -15,12 +15,56 @@ type PanoramaRecord = {
   projectId: string;
   filePath: string;
   designedFilePath: string | null;
-  status: "pending" | "completed";
+  status: "pending" | "processing" | "completed" | "failed";
   createdAt: string;
 };
 
 const isDesignAvailable = (panorama: PanoramaRecord): boolean =>
   panorama.status === "completed" && Boolean(panorama.designedFilePath);
+
+const designStatusLabel = (panorama: PanoramaRecord): string => {
+  if (panorama.status === "completed") {
+    return panorama.designedFilePath ? "✓ Redesign completed" : "⚠ Redesign completed";
+  }
+
+  if (panorama.status === "processing") {
+    return "⏳ Generating redesign...";
+  }
+
+  if (panorama.status === "failed") {
+    return "✕ Redesign failed";
+  }
+
+  return "⏳ Waiting for redesign...";
+};
+
+const afterPanelContent = (panorama: PanoramaRecord) => {
+  if (panorama.status === "processing") {
+    return {
+      title: "Generating redesign…",
+      body: "The AI is working on your 360° redesign. It will appear here automatically.",
+    };
+  }
+
+  if (panorama.status === "failed") {
+    return {
+      title: "Redesign failed",
+      body: "Something went wrong during generation. The original panorama is still available below.",
+    };
+  }
+
+  if (panorama.status === "completed" && !panorama.designedFilePath) {
+    return {
+      title: "Redesign completed (incomplete)",
+      body: "The redesign was marked as completed but the generated file is missing. The original is still available.",
+    };
+  }
+
+  return {
+    title: "Waiting for redesign…",
+    body: "It will appear here automatically once the AI generation is completed.",
+  };
+};
 
 function VrPage() {
   const [panoramas, setPanoramas] = useState<PanoramaRecord[]>([]);
@@ -106,6 +150,7 @@ function VrPage() {
 
   const current = panoramas.length ? panoramas[selectedIndex] : undefined;
   const designAvailable = current ? isDesignAvailable(current) : false;
+  const afterContent = current ? afterPanelContent(current) : undefined;
 
   const previousPanorama = () => {
     if (!panoramas.length) return;
@@ -190,7 +235,7 @@ function VrPage() {
             <img src={panorama.filePath} alt="" />
             <div className="thumbnail-info">
               <strong>Panorama {index + 1}</strong>
-              <span>{isDesignAvailable(panorama) ? "✓ Design ready" : "⏳ Designing..."}</span>
+              <span>{designStatusLabel(panorama)}</span>
             </div>
             <button
               type="button"
@@ -229,8 +274,8 @@ function VrPage() {
               ) : (
                 <div className="after-placeholder">
                   <div className="spinner" />
-                  <strong>AI is designing your panorama…</strong>
-                  <p>It will appear here automatically when generation is completed.</p>
+                  <strong>{afterContent?.title ?? "Waiting for redesign…"}</strong>
+                  <p>{afterContent?.body ?? ""}</p>
                   <p>
                     You can still <em>Enter VR</em> with the original panorama.
                   </p>
@@ -277,7 +322,7 @@ function VrPage() {
             Panorama {selectedIndex + 1} / {panoramas.length}
           </strong>
           <span className={designAvailable ? "ai-status" : undefined}>
-            {designAvailable ? "AI Design ready ✓" : "AI design in progress…"}
+            {current ? designStatusLabel(current) : ""}
           </span>
         </div>
       )}
