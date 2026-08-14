@@ -37,9 +37,13 @@ public/download/*
 *.sln
 *.sw?
 <<<<<<< HEAD
+<<<<<<< HEAD
 prisma/*
 .env
 .env.*  
+=======
+prisma/*
+>>>>>>> 9e1b80b217416cdbed4327b3247f962c0283c666
 =======
 prisma/*
 >>>>>>> 9e1b80b217416cdbed4327b3247f962c0283c666
