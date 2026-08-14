@@ -34,6 +34,10 @@ function getExtension(mimeType: string) {
   return "jpg";
 }
 
+// =====================================================
+// PROCESS PHOTO
+// =====================================================
+
 export const processPhoto = createServerFn({
   method: "POST",
 })
@@ -61,6 +65,12 @@ export const processPhoto = createServerFn({
         corners,
       } = data;
 
+      console.log("PROCESS PHOTO CALLED", {
+        projectId,
+        wallKey,
+        imageLength: image?.length,
+      });
+
       if (!projectId) {
         throw new Error(
           "Missing projectId",
@@ -79,10 +89,7 @@ export const processPhoto = createServerFn({
         );
       }
 
-      // =========================
-      // 1. Ensure project exists
-      // =========================
-
+      // Ensure project exists
       const {
         data: existingProject,
         error: projectFindError,
@@ -110,10 +117,7 @@ export const processPhoto = createServerFn({
         }
       }
 
-      // =========================
-      // 2. Convert image
-      // =========================
-
+      // Convert image
       const buffer =
         base64ToBuffer(image);
 
@@ -129,10 +133,17 @@ export const processPhoto = createServerFn({
       const storagePath =
         `projects/${projectId}/photos/${photoId}.${extension}`;
 
-      // =========================
-      // 3. Upload to Storage
-      // =========================
+      console.log(
+        "UPLOADING PHOTO TO STORAGE",
+        {
+          bucket: SUPABASE_BUCKET,
+          storagePath,
+          mimeType,
+          size: buffer.length,
+        },
+      );
 
+      // Upload photo
       const {
         data: storageData,
         error: storageError,
@@ -149,13 +160,20 @@ export const processPhoto = createServerFn({
         );
 
       if (storageError) {
+        console.error(
+          "PHOTO STORAGE ERROR",
+          storageError,
+        );
+
         throw storageError;
       }
 
-      // =========================
-      // 4. Get public URL
-      // =========================
+      console.log(
+        "PHOTO STORAGE UPLOAD OK",
+        storageData,
+      );
 
+      // Public URL
       const {
         data: publicUrlData,
       } = supabase.storage
@@ -167,10 +185,7 @@ export const processPhoto = createServerFn({
       const filePath =
         publicUrlData.publicUrl;
 
-      // =========================
-      // 5. Insert photo DB row
-      // =========================
-
+      // Save photo in DB
       const {
         data: photo,
         error: photoError,
@@ -186,7 +201,11 @@ export const processPhoto = createServerFn({
         .single();
 
       if (photoError) {
-        // Cleanup uploaded image
+        console.error(
+          "PHOTO DB ERROR",
+          photoError,
+        );
+
         await supabase.storage
           .from(SUPABASE_BUCKET)
           .remove([
@@ -196,12 +215,15 @@ export const processPhoto = createServerFn({
         throw photoError;
       }
 
+      console.log(
+        "PHOTO DB INSERT OK",
+        photo,
+      );
+
       return {
         success: true,
-        filePath:
-          photo.file_path,
-        photoId:
-          photo.id,
+        filePath: photo.file_path,
+        photoId: photo.id,
       };
     } catch (error) {
       console.error(
@@ -212,6 +234,10 @@ export const processPhoto = createServerFn({
       throw error;
     }
   });
+
+// =====================================================
+// SAVE PANORAMA
+// =====================================================
 
 export const savePanorama = createServerFn({
   method: "POST",
@@ -236,6 +262,14 @@ export const savePanorama = createServerFn({
         image,
       } = data;
 
+      console.log(
+        "SAVE PANORAMA CALLED",
+        {
+          projectId,
+          imageLength: image?.length,
+        },
+      );
+
       if (!projectId) {
         throw new Error(
           "Missing projectId",
@@ -248,10 +282,7 @@ export const savePanorama = createServerFn({
         );
       }
 
-      // =========================
-      // 1. Ensure project exists
-      // =========================
-
+      // Ensure project exists
       const {
         data: existingProject,
         error: projectFindError,
@@ -262,6 +293,11 @@ export const savePanorama = createServerFn({
         .maybeSingle();
 
       if (projectFindError) {
+        console.error(
+          "PROJECT FIND ERROR",
+          projectFindError,
+        );
+
         throw projectFindError;
       }
 
@@ -275,53 +311,16 @@ export const savePanorama = createServerFn({
           });
 
         if (projectCreateError) {
+          console.error(
+            "PROJECT CREATE ERROR",
+            projectCreateError,
+          );
+
           throw projectCreateError;
         }
       }
 
-      // =========================
-      // 2. Find old panoramas
-      // =========================
-
-      const {
-        data: oldPanoramas,
-        error: oldPanoramaError,
-      } = await supabase
-        .from("panoramas")
-        .select(
-          "id,file_path,designed_file_path",
-        )
-        .eq(
-          "project_id",
-          projectId,
-        );
-
-      if (oldPanoramaError) {
-        throw oldPanoramaError;
-      }
-
-      // =========================
-      // 3. Delete old DB rows
-      // =========================
-
-      const {
-        error: deleteError,
-      } = await supabase
-        .from("panoramas")
-        .delete()
-        .eq(
-          "project_id",
-          projectId,
-        );
-
-      if (deleteError) {
-        throw deleteError;
-      }
-
-      // =========================
-      // 4. Convert new panorama
-      // =========================
-
+      // Convert panorama
       const buffer =
         base64ToBuffer(image);
 
@@ -337,10 +336,17 @@ export const savePanorama = createServerFn({
       const storagePath =
         `projects/${projectId}/panoramas/${panoramaId}.${extension}`;
 
-      // =========================
-      // 5. Upload panorama
-      // =========================
+      console.log(
+        "UPLOADING PANORAMA TO STORAGE",
+        {
+          bucket: SUPABASE_BUCKET,
+          storagePath,
+          mimeType,
+          size: buffer.length,
+        },
+      );
 
+      // Upload panorama
       const {
         data: storageData,
         error: storageError,
@@ -357,13 +363,20 @@ export const savePanorama = createServerFn({
         );
 
       if (storageError) {
+        console.error(
+          "PANORAMA STORAGE ERROR",
+          storageError,
+        );
+
         throw storageError;
       }
 
-      // =========================
-      // 6. Public URL
-      // =========================
+      console.log(
+        "STORAGE UPLOAD OK",
+        storageData,
+      );
 
+      // Get public URL
       const {
         data: publicUrlData,
       } = supabase.storage
@@ -375,10 +388,12 @@ export const savePanorama = createServerFn({
       const filePath =
         publicUrlData.publicUrl;
 
-      // =========================
-      // 7. Insert panorama row
-      // =========================
+      console.log(
+        "PANORAMA PUBLIC URL",
+        filePath,
+      );
 
+      // Insert panorama in DB
       const {
         data: panorama,
         error: panoramaError,
@@ -386,19 +401,20 @@ export const savePanorama = createServerFn({
         .from("panoramas")
         .insert({
           id: panoramaId,
-          project_id:
-            projectId,
-          file_path:
-            filePath,
-          designed_file_path:
-            null,
-          status:
-            "pending",
+          project_id: projectId,
+          file_path: filePath,
+          designed_file_path: null,
+          status: "pending",
         })
         .select()
         .single();
 
       if (panoramaError) {
+        console.error(
+          "PANORAMA DB INSERT ERROR",
+          panoramaError,
+        );
+
         await supabase.storage
           .from(SUPABASE_BUCKET)
           .remove([
@@ -408,18 +424,22 @@ export const savePanorama = createServerFn({
         throw panoramaError;
       }
 
-      // =========================
-      // 8. Optional old storage cleanup
-      // =========================
+      console.log(
+        "PANORAMA DB INSERT OK",
+        panorama,
+      );
 
-      if (
-        oldPanoramas &&
-        oldPanoramas.length > 0
-      ) {
-        console.log(
-          `${oldPanoramas.length} old panorama row(s) replaced`,
-        );
-      }
+      console.log(
+        "SAVE PANORAMA COMPLETED",
+        {
+          panoramaId:
+            panorama.id,
+          status:
+            panorama.status,
+          filePath:
+            panorama.file_path,
+        },
+      );
 
       return {
         success: true,
@@ -434,12 +454,101 @@ export const savePanorama = createServerFn({
           panorama.status,
 
         designedFilePath:
-          panorama
-            .designed_file_path,
+          panorama.designed_file_path,
       };
     } catch (error) {
       console.error(
         "Backend panorama save error:",
+        error,
+      );
+
+      throw error;
+    }
+  });
+
+// =====================================================
+// COMPLETE PANORAMA DESIGN
+// =====================================================
+
+export const completePanoramaDesign = createServerFn({
+  method: "POST",
+})
+  .validator(
+    (data: {
+      panoramaId: string;
+      designedFilePath: string;
+    }) => data,
+  )
+  .handler(async ({ data }) => {
+    const {
+      supabase,
+    } = await import("./supabase");
+
+    try {
+      const {
+        panoramaId,
+        designedFilePath,
+      } = data;
+
+      console.log(
+        "COMPLETE PANORAMA DESIGN CALLED",
+        {
+          panoramaId,
+          designedFilePath,
+        },
+      );
+
+      if (!panoramaId) {
+        throw new Error(
+          "Missing panoramaId",
+        );
+      }
+
+      if (!designedFilePath) {
+        throw new Error(
+          "Missing designedFilePath",
+        );
+      }
+
+      const {
+        data: panorama,
+        error,
+      } = await supabase
+        .from("panoramas")
+        .update({
+          designed_file_path:
+            designedFilePath,
+          status:
+            "completed",
+        })
+        .eq(
+          "id",
+          panoramaId,
+        )
+        .select()
+        .single();
+
+      if (error) {
+        console.error(
+          "PANORAMA DESIGN UPDATE ERROR",
+          error,
+        );
+
+        throw error;
+      }
+
+      console.log(
+        "PANORAMA DESIGN COMPLETED",
+        panorama,
+      );
+
+      return {
+        success: true,
+        panorama,
+      };
+    } catch (error) {
+      console.error(
+        "Panorama design completion error:",
         error,
       );
 
