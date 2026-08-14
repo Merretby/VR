@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, MouseEvent } from "react";
 import { PanoramaViewer } from "@/components/vr/PanoramaViewer";
+import { savePanorama } from "@/lib/photos";
 import logo from "@/assets/logo.jpg";
 import "./vr.css";
 
@@ -9,148 +10,138 @@ export const Route = createFileRoute("/vr")({
   component: VrPage,
 });
 
-type PanoramaImage = {
+type PanoramaRecord = {
   id: string;
-  filename: string;
-  originalName?: string;
-  path: string;
-  width?: number | string;
-  height?: number | string;
-  ratio?: string;
-  quality?: string;
-  isPanorama360?: boolean;
+  projectId: string;
+  filePath: string;
+  designedFilePath: string | null;
+  status: "pending" | "completed";
+  createdAt: string;
 };
 
-/**
- * Backend image paths are already same-origin (/files/enhanced/...); strip an
- * absolute origin if the backend ever returns one.
- */
-function toImageUrl(path: string): string {
-  if (path.startsWith("http://") || path.startsWith("https://")) {
-    try {
-      return new URL(path).pathname;
-    } catch {
-      return path;
-    }
-  }
-  return path;
-}
+const isDesignAvailable = (panorama: PanoramaRecord): boolean =>
+  panorama.status === "completed" && Boolean(panorama.designedFilePath);
 
 function VrPage() {
-  const [images, setImages] = useState<PanoramaImage[]>([]);
+  const [panoramas, setPanoramas] = useState<PanoramaRecord[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [newImageMessage, setNewImageMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const lastNewestImageRef = useRef<string | null>(null);
+  const lastNewestIdRef = useRef<string | null>(null);
 
-  const loadImages = async (autoOpenNew = false) => {
+  const loadPanoramas = async (autoOpenNew = false) => {
     try {
-      const response = await fetch("/api/images");
-      if (!response.ok) throw new Error(`Load images failed (${response.status})`);
-      const data = (await response.json()) as { images?: PanoramaImage[] };
-      const loaded = data.images ?? [];
-      const newestImage = loaded.length ? loaded[0] : undefined;
+      const response = await fetch("/api/panoramas");
+      if (!response.ok) throw new Error(`Load panoramas failed (${response.status})`);
+      const data = (await response.json()) as { panoramas?: PanoramaRecord[] };
+      const loaded = data.panoramas ?? [];
+      const newest = loaded.length ? loaded[0] : undefined;
 
       if (
         autoOpenNew &&
-        newestImage &&
-        lastNewestImageRef.current &&
-        newestImage.id !== lastNewestImageRef.current
+        newest &&
+        lastNewestIdRef.current &&
+        newest.id !== lastNewestIdRef.current
       ) {
         setSelectedIndex(0);
-        setNewImageMessage("New 360 panorama received and processed ✓");
+        setNewImageMessage("New 360 panorama received ✓");
         setTimeout(() => {
           setNewImageMessage("");
         }, 5000);
       }
 
-      if (newestImage) {
-        lastNewestImageRef.current = newestImage.id;
+      if (newest) {
+        lastNewestIdRef.current = newest.id;
       }
 
-      setImages(loaded);
+      setPanoramas(loaded);
       setSelectedIndex((current) => {
         if (!loaded.length) return 0;
         if (current >= loaded.length) return loaded.length - 1;
         return current;
       });
     } catch (error) {
-      console.error("Load images error:", error);
+      console.error("Load panoramas error:", error);
     }
   };
 
   useEffect(() => {
-    void loadImages(false);
+    void loadPanoramas(false);
     const interval = setInterval(() => {
-      void loadImages(true);
+      void loadPanoramas(true);
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error ?? new Error("Read failed"));
+      reader.readAsDataURL(file);
+    });
 
   const handleUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
     if (!files.length) return;
 
-    const formData = new FormData();
-    files.forEach((file) => {
-      formData.append("images", file);
-    });
-
     try {
       setUploading(true);
-      const response = await fetch("/api/upload", { method: "POST", body: formData });
-      if (!response.ok) throw new Error(`Upload failed (${response.status})`);
-      await loadImages(true);
+      for (const file of files) {
+        const dataUrl = await fileToDataUrl(file);
+        await savePanorama({
+          data: { projectId: "default-project", image: dataUrl },
+        });
+      }
+      await loadPanoramas(true);
       event.target.value = "";
     } catch (error) {
       console.error("Upload error:", error);
-      alert("AI processing failed. Check backend terminal.");
+      alert("Panorama upload failed. Check the server terminal.");
     } finally {
       setUploading(false);
     }
   };
 
-  const currentImage = images.length ? images[selectedIndex] : undefined;
+  const current = panoramas.length ? panoramas[selectedIndex] : undefined;
+  const designAvailable = current ? isDesignAvailable(current) : false;
 
-  const previousImage = () => {
-    if (!images.length) return;
-    setSelectedIndex((current) => (current === 0 ? images.length - 1 : current - 1));
+  const previousPanorama = () => {
+    if (!panoramas.length) return;
+    setSelectedIndex((currentIndex) =>
+      currentIndex === 0 ? panoramas.length - 1 : currentIndex - 1,
+    );
   };
 
-  const nextImage = () => {
-    if (!images.length) return;
-    setSelectedIndex((current) => (current === images.length - 1 ? 0 : current + 1));
+  const nextPanorama = () => {
+    if (!panoramas.length) return;
+    setSelectedIndex((currentIndex) =>
+      currentIndex === panoramas.length - 1 ? 0 : currentIndex + 1,
+    );
   };
 
-  const deleteImage = async (event: MouseEvent, image: PanoramaImage) => {
+  const deletePanorama = async (event: MouseEvent, panorama: PanoramaRecord) => {
     event.stopPropagation();
     if (!window.confirm("Delete this panorama?")) return;
 
     try {
-      const response = await fetch(`/api/images/${encodeURIComponent(image.filename)}`, {
+      const response = await fetch(`/api/panoramas/${encodeURIComponent(panorama.id)}`, {
         method: "DELETE",
       });
-      if (response.status === 423) {
-        alert("Image is still busy. Try again in a few seconds.");
-        return;
-      }
       if (!response.ok) throw new Error(`Delete failed (${response.status})`);
       setSelectedIndex(0);
-      await loadImages(false);
+      await loadPanoramas(false);
     } catch (error) {
       console.error("Delete error:", error);
       alert("Delete failed.");
     }
   };
 
-  const openFullscreen = async () => {
-    const viewer = document.querySelector(".viewer-wrapper");
-    if (!viewer) return;
-
+  const openFullscreen = async (element: HTMLElement) => {
     try {
       if (!document.fullscreenElement) {
-        await viewer.requestFullscreen();
+        await element.requestFullscreen();
       } else {
         await document.exitFullscreen();
       }
@@ -173,7 +164,7 @@ function VrPage() {
             disabled={uploading}
             onClick={() => fileInputRef.current?.click()}
           >
-            {uploading ? "AI Processing..." : "+ Upload Images"}
+            {uploading ? "Uploading..." : "+ Upload Panorama"}
           </button>
         </div>
         <input
@@ -186,31 +177,26 @@ function VrPage() {
         />
       </header>
 
-      {uploading && <div className="processing">Real-ESRGAN is processing the panorama...</div>}
+      {uploading && <div className="processing">Saving panorama...</div>}
       {newImageMessage && <div className="processing">{newImageMessage}</div>}
 
       <div className="thumbnails">
-        {images.map((image, index) => (
+        {panoramas.map((panorama, index) => (
           <div
-            key={image.id}
+            key={panorama.id}
             className={index === selectedIndex ? "thumbnail active" : "thumbnail"}
             onClick={() => setSelectedIndex(index)}
           >
-            <img src={toImageUrl(image.path)} alt={image.originalName ?? ""} />
+            <img src={panorama.filePath} alt="" />
             <div className="thumbnail-info">
               <strong>Panorama {index + 1}</strong>
-              <span>
-                {image.width} × {image.height}
-              </span>
-              <span>{image.isPanorama360 ? "✓ 360 Ready" : "⚠ Not 2:1"}</span>
-              <span>Quality: {image.quality}</span>
-              <span className="ai-ready">✓ AI Enhanced</span>
+              <span>{isDesignAvailable(panorama) ? "✓ Design ready" : "⏳ Designing..."}</span>
             </div>
             <button
               type="button"
               className="delete-image"
               title="Delete panorama"
-              onClick={(event) => deleteImage(event, image)}
+              onClick={(event) => deletePanorama(event, panorama)}
             >
               🗑
             </button>
@@ -219,24 +205,60 @@ function VrPage() {
       </div>
 
       <main className="viewer-area">
-        {currentImage ? (
-          <div className="viewer-wrapper">
-            <PanoramaViewer imageUrl={toImageUrl(currentImage.path)} />
-            {images.length > 1 && (
+        {current ? (
+          <div className="viewer-panels">
+            <div className="viewer-wrapper">
+              <div className="panel-label">BEFORE — Original Panorama</div>
+              <PanoramaViewer imageUrl={current.filePath} vrButtonId="vr-before" />
+              <div className="panel-top-controls">
+                <button
+                  type="button"
+                  onClick={(event) =>
+                    openFullscreen(event.currentTarget.closest(".viewer-wrapper") as HTMLElement)
+                  }
+                >
+                  ⛶ Fullscreen
+                </button>
+              </div>
+            </div>
+
+            <div className="viewer-wrapper">
+              <div className="panel-label">AFTER — AI Designed Panorama</div>
+              {designAvailable && current.designedFilePath ? (
+                <PanoramaViewer imageUrl={current.designedFilePath} vrButtonId="vr-after" />
+              ) : (
+                <div className="after-placeholder">
+                  <div className="spinner" />
+                  <strong>AI is designing your panorama…</strong>
+                  <p>It will appear here automatically when generation is completed.</p>
+                  <p>
+                    You can still <em>Enter VR</em> with the original panorama.
+                  </p>
+                </div>
+              )}
+              <div className="panel-top-controls">
+                <button
+                  type="button"
+                  onClick={(event) =>
+                    openFullscreen(event.currentTarget.closest(".viewer-wrapper") as HTMLElement)
+                  }
+                >
+                  ⛶ Fullscreen
+                </button>
+              </div>
+            </div>
+
+            {panoramas.length > 1 && (
               <>
-                <button type="button" className="nav-arrow left-arrow" onClick={previousImage}>
+                <button type="button" className="nav-arrow left-arrow" onClick={previousPanorama}>
                   ❮
                 </button>
-                <button type="button" className="nav-arrow right-arrow" onClick={nextImage}>
+                <button type="button" className="nav-arrow right-arrow" onClick={nextPanorama}>
                   ❯
                 </button>
               </>
             )}
-            <div className="viewer-top-controls">
-              <button type="button" onClick={openFullscreen}>
-                ⛶ Fullscreen
-              </button>
-            </div>
+
             <div className="viewer-help">
               Drag to look around • Mouse wheel to zoom • ENTER VR for headset
             </div>
@@ -244,23 +266,19 @@ function VrPage() {
         ) : (
           <div className="empty-viewer">
             <h2>Waiting for panorama...</h2>
-            <p>Upload an image or wait for a new 360 panorama.</p>
+            <p>Upload a panorama or wait for a new 360 capture.</p>
           </div>
         )}
       </main>
 
-      {currentImage && (
+      {current && (
         <div className="bottom-info">
           <strong>
-            Panorama {selectedIndex + 1} / {images.length}
+            Panorama {selectedIndex + 1} / {panoramas.length}
           </strong>
-          <span>
-            {currentImage.width} × {currentImage.height}
+          <span className={designAvailable ? "ai-status" : undefined}>
+            {designAvailable ? "AI Design ready ✓" : "AI design in progress…"}
           </span>
-          <span>Ratio: {currentImage.ratio}</span>
-          <span>{currentImage.isPanorama360 ? "360 Ready ✓" : "Not 2:1 ⚠"}</span>
-          <span>Quality: {currentImage.quality}</span>
-          <span className="ai-status">AI Enhanced ✓</span>
         </div>
       )}
     </div>

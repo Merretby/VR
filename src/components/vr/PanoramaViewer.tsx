@@ -11,7 +11,13 @@ const VR_MOVE_SPEED = 0.035;
  * viewer with drag-to-look, scroll-to-zoom and a WebXR "ENTER VR" button
  * for headsets (Meta Quest etc.).
  */
-export function PanoramaViewer({ imageUrl }: { imageUrl: string }) {
+export function PanoramaViewer({
+  imageUrl,
+  vrButtonId,
+}: {
+  imageUrl: string;
+  vrButtonId?: string | undefined;
+}) {
   const mountRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -50,7 +56,7 @@ export function PanoramaViewer({ imageUrl }: { imageUrl: string }) {
     playerRig.add(controller2);
 
     const vrButton = VRButton.createButton(renderer);
-    vrButton.id = "vr-button";
+    vrButton.id = vrButtonId ?? "vr-button";
     vrButton.style.position = "absolute";
     vrButton.style.left = "50%";
     vrButton.style.bottom = "32px";
@@ -241,7 +247,7 @@ export function PanoramaViewer({ imageUrl }: { imageUrl: string }) {
       if (vrButton.parentNode === container) container.removeChild(vrButton);
       if (renderer.domElement.parentNode === container) container.removeChild(renderer.domElement);
     };
-  }, [imageUrl]);
+  }, [imageUrl, vrButtonId]);
 
   return <div ref={mountRef} className="panorama-viewer" style={{ position: "relative" }} />;
 }

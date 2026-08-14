@@ -20,6 +20,7 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as FilesSplatRouteImport } from './routes/files/$'
 import { Route as ApiImagesSplatRouteImport } from './routes/api/images/$'
+import { Route as ApiPanoramasSplatRouteImport } from './routes/api/panoramas/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -76,6 +77,11 @@ const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
   path: '/api/images/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPanoramasSplatRoute = ApiPanoramasSplatRouteImport.update({
+  id: '/api/panoramas/$',
+  path: '/api/panoramas/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/api/upload': typeof ApiUploadRoute
   '/files/$': typeof FilesSplatRoute
   '/api/images/$': typeof ApiImagesSplatRoute
+  '/api/panoramas/$': typeof ApiPanoramasSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/api/upload': typeof ApiUploadRoute
   '/files/$': typeof FilesSplatRoute
   '/api/images/$': typeof ApiImagesSplatRoute
+  '/api/panoramas/$': typeof ApiPanoramasSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/api/upload': typeof ApiUploadRoute
   '/files/$': typeof FilesSplatRoute
   '/api/images/$': typeof ApiImagesSplatRoute
+  '/api/panoramas/$': typeof ApiPanoramasSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/api/upload'
     | '/files/$'
     | '/api/images/$'
+    | '/api/panoramas/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/api/upload'
     | '/files/$'
     | '/api/images/$'
+    | '/api/panoramas/$'
   id:
     | '__root__'
     | '/'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/api/upload'
     | '/files/$'
     | '/api/images/$'
+    | '/api/panoramas/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,6 +183,7 @@ export interface RootRouteChildren {
   ApiUploadRoute: typeof ApiUploadRoute
   FilesSplatRoute: typeof FilesSplatRoute
   ApiImagesSplatRoute: typeof ApiImagesSplatRoute
+  ApiPanoramasSplatRoute: typeof ApiPanoramasSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiImagesSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/panoramas/$': {
+      id: '/api/panoramas/$'
+      path: '/api/panoramas/$'
+      fullPath: '/api/panoramas/$'
+      preLoaderRoute: typeof ApiPanoramasSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -267,6 +287,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUploadRoute: ApiUploadRoute,
   FilesSplatRoute: FilesSplatRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
+  ApiPanoramasSplatRoute: ApiPanoramasSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
