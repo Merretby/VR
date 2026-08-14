@@ -36,6 +36,10 @@ public/download/*
 *.njsproj
 *.sln
 *.sw?
+<<<<<<< HEAD
 prisma/*
 .env
 .env.*  
+=======
+prisma/*
+>>>>>>> 9e1b80b217416cdbed4327b3247f962c0283c666
