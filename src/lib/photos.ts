@@ -275,6 +275,20 @@ export const savePanorama = createServerFn({
         .select()
         .single();
 
+      // Also create a design_jobs record for tracking
+      try {
+        await supabase.from("design_jobs").insert({
+          project_id: projectId,
+          panorama_id: panoramaId,
+          source_image_url: filePath,
+          status: "processing",
+          moodboard_key: "moodbord.jpg",
+          output_image_url: null,
+        });
+      } catch (djErr) {
+        console.warn("design_jobs initial insert warning:", djErr);
+      }
+
       if (panoramaError) {
         console.error("PANORAMA DB INSERT ERROR", panoramaError);
 
@@ -762,10 +776,27 @@ export async function handleReceiveDesignedPanorama(request: Request): Promise<R
       throw error;
     }
 
+    // Also update design_jobs table output_image_url
+    try {
+      await supabase
+        .from("design_jobs")
+        .update({
+          output_image_url: designedFilePath,
+          status: "completed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("panorama_id", panoramaId);
+    } catch (djErr) {
+      console.warn("design_jobs update error:", djErr);
+    }
+
     console.log("N8N DESIGN RECEIVED", panorama);
 
     return Response.json({
       success: true,
+      panoramaId,
+      output_image_url: designedFilePath,
+      designedFilePath,
       panorama,
     });
   } catch (error) {
@@ -808,13 +839,6 @@ export async function handleReceiveGeneratedPanorama(request: Request): Promise<
   try {
     const contentType = request.headers.get("content-type") ?? "";
 
-    if (!contentType.includes("multipart/form-data")) {
-      return Response.json(
-        { success: false, message: "Content-Type must be multipart/form-data" },
-        { status: 400 },
-      );
-    }
-
     // Optional shared-secret authentication for n8n.
     const secret = process.env['N8N_GENERATED_PANORAMA_SECRET'];
 
@@ -826,94 +850,117 @@ export async function handleReceiveGeneratedPanorama(request: Request): Promise<
       }
     }
 
-    const formData = await request.formData();
+    let projectId = "";
+    let designedFilePath = "";
 
-    const panoramaIdValue = formData.get("panoramaId");
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
 
-    const projectId = formData.get("projectId");
+      const panoramaIdValue = formData.get("panoramaId") ?? formData.get("panorama_id");
+      const projectIdValue = formData.get("projectId") ?? formData.get("project_id");
+      const generatedFile = formData.get("generatedPanorama") ?? formData.get("image") ?? formData.get("file");
 
-    const generatedFile = formData.get("generatedPanorama");
+      if (typeof panoramaIdValue !== "string" || !panoramaIdValue) {
+        return Response.json({ success: false, message: "Missing panoramaId" }, { status: 400 });
+      }
 
-    if (typeof panoramaIdValue !== "string" || !panoramaIdValue) {
-      return Response.json({ success: false, message: "Missing panoramaId" }, { status: 400 });
+      panoramaId = panoramaIdValue;
+      projectId = typeof projectIdValue === "string" ? projectIdValue : "";
+
+      // Step 1 — Verify panorama exists.
+      const { data: panorama, error: findError } = await supabase
+        .from("panoramas")
+        .select("project_id, file_path")
+        .eq("id", panoramaId)
+        .maybeSingle();
+
+      if (findError) {
+        throw findError;
+      }
+
+      if (!panorama) {
+        return Response.json({ success: false, message: "Panorama not found" }, { status: 404 });
+      }
+
+      if (!projectId) {
+        projectId = panorama.project_id;
+      }
+
+      if (generatedFile instanceof File) {
+        if (!ALLOWED_IMAGE_TYPES.includes(generatedFile.type)) {
+          return Response.json(
+            { success: false, message: `Unsupported image type: ${generatedFile.type}` },
+            { status: 400 },
+          );
+        }
+
+        if (generatedFile.size > MAX_GENERATED_FILE_SIZE) {
+          return Response.json(
+            { success: false, message: "Generated panorama file too large" },
+            { status: 400 },
+          );
+        }
+
+        const buffer = Buffer.from(await generatedFile.arrayBuffer());
+        const extension = getExtension(generatedFile.type);
+
+        const storagePath = `projects/${projectId}/panoramas-designed/${panoramaId}-${crypto.randomUUID()}.${extension}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from(SUPABASE_BUCKET)
+          .upload(storagePath, buffer, {
+            contentType: generatedFile.type,
+            upsert: false,
+            cacheControl: "3600",
+          });
+
+        if (uploadError) {
+          console.error("GENERATED PANORAMA STORAGE ERROR", uploadError);
+          throw uploadError;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from(SUPABASE_BUCKET)
+          .getPublicUrl(storagePath);
+
+        designedFilePath = publicUrlData.publicUrl;
+      } else {
+        const urlField = formData.get("output_image_url") ?? formData.get("designedFilePath") ?? formData.get("imageUrl");
+        if (typeof urlField === "string" && urlField) {
+          designedFilePath = urlField;
+        } else {
+          return Response.json(
+            { success: false, message: "Missing generatedPanorama file or output_image_url" },
+            { status: 400 },
+          );
+        }
+      }
+    } else {
+      // JSON body support
+      const body = (await request.json()) as {
+        panoramaId?: string;
+        panorama_id?: string;
+        projectId?: string;
+        project_id?: string;
+        output_image_url?: string;
+        outputImageUrl?: string;
+        designedFilePath?: string;
+      };
+
+      panoramaId = body.panoramaId ?? body.panorama_id ?? "";
+      designedFilePath = body.output_image_url ?? body.outputImageUrl ?? body.designedFilePath ?? "";
+      projectId = body.projectId ?? body.project_id ?? "";
+
+      if (!panoramaId) {
+        return Response.json({ success: false, message: "Missing panoramaId" }, { status: 400 });
+      }
+
+      if (!designedFilePath) {
+        return Response.json({ success: false, message: "Missing output_image_url / designedFilePath" }, { status: 400 });
+      }
     }
 
-    panoramaId = panoramaIdValue;
-
-    if (typeof projectId !== "string" || !projectId) {
-      return Response.json({ success: false, message: "Missing projectId" }, { status: 400 });
-    }
-
-    if (!(generatedFile instanceof File)) {
-      return Response.json(
-        { success: false, message: "Missing generatedPanorama file" },
-        { status: 400 },
-      );
-    }
-
-    // Step 1 — Verify panorama exists.
-    const { data: panorama, error: findError } = await supabase
-      .from("panoramas")
-      .select("project_id, file_path")
-      .eq("id", panoramaId)
-      .maybeSingle();
-
-    if (findError) {
-      throw findError;
-    }
-
-    if (!panorama) {
-      return Response.json({ success: false, message: "Panorama not found" }, { status: 404 });
-    }
-
-    // Step 2 — Verify the panorama belongs to the supplied project.
-    if (panorama.project_id !== projectId) {
-      return Response.json({ success: false, message: "Project mismatch" }, { status: 403 });
-    }
-
-    // Step 3 — Validate the uploaded file (never trust n8n's filename/type).
-    if (!ALLOWED_IMAGE_TYPES.includes(generatedFile.type)) {
-      return Response.json(
-        { success: false, message: `Unsupported image type: ${generatedFile.type}` },
-        { status: 400 },
-      );
-    }
-
-    if (generatedFile.size > MAX_GENERATED_FILE_SIZE) {
-      return Response.json(
-        { success: false, message: "Generated panorama file too large" },
-        { status: 400 },
-      );
-    }
-
-    const buffer = Buffer.from(await generatedFile.arrayBuffer());
-
-    const extension = getExtension(generatedFile.type);
-
-    // Step 4 — Save separately from the original.
-    const storagePath = `projects/${projectId}/panoramas-designed/${panoramaId}-${crypto.randomUUID()}.${extension}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from(SUPABASE_BUCKET)
-      .upload(storagePath, buffer, {
-        contentType: generatedFile.type,
-        upsert: false,
-        cacheControl: "3600",
-      });
-
-    if (uploadError) {
-      console.error("GENERATED PANORAMA STORAGE ERROR", uploadError);
-
-      throw uploadError;
-    }
-
-    const { data: publicUrlData } = supabase.storage
-      .from(SUPABASE_BUCKET)
-      .getPublicUrl(storagePath);
-
-    const designedFilePath = publicUrlData.publicUrl;
-
-    // Step 5 — Update only designedFilePath + status. filePath untouched.
+    // Step 5 — Update panoramas table (status='completed', designed_file_path=designedFilePath)
     const { data: updated, error: updateError } = await supabase
       .from("panoramas")
       .update({
@@ -926,18 +973,32 @@ export async function handleReceiveGeneratedPanorama(request: Request): Promise<
 
     if (updateError) {
       console.error("GENERATED PANORAMA DB UPDATE ERROR", updateError);
-
       throw updateError;
     }
 
-    console.log("GENERATED PANORAMA ACCEPTED", updated);
+    // Also update design_jobs table output_image_url
+    try {
+      await supabase
+        .from("design_jobs")
+        .update({
+          output_image_url: designedFilePath,
+          status: "completed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("panorama_id", panoramaId);
+    } catch (djErr) {
+      console.warn("design_jobs update error:", djErr);
+    }
 
-    // Step 6 — Return success.
+    console.log("GENERATED PANORAMA ACCEPTED", { panoramaId, output_image_url: designedFilePath });
+
+    // Step 6 — Return success with both output_image_url and designedFilePath.
     return Response.json({
       success: true,
       panoramaId,
-      projectId,
+      projectId: projectId || updated?.project_id,
       status: "completed",
+      output_image_url: designedFilePath,
       designedFilePath,
     });
   } catch (error) {
