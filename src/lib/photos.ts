@@ -406,6 +406,11 @@ async function triggerN8nWorkflow(panorama: {
     projectId: panorama.project_id,
     panoramaPath,
     visionBoardPath,
+    panoramaUrl: panoramaPath,
+    visionBoardUrl: visionBoardPath,
+    "panorama-url": panoramaPath,
+    "visionboard-url": visionBoardPath,
+    "vision_board_path": visionBoardPath,
   };
 
   console.log("TRIGGERING N8N WORKFLOW", payload);
