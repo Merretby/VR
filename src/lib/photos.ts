@@ -401,16 +401,9 @@ async function triggerN8nWorkflow(panorama: {
 
   const visionBoardPath = await resolveVisionBoardPath(panorama.project_id);
 
-  const payload: Record<string, string | null> = {
-    panoramaId: panorama.id,
-    projectId: panorama.project_id,
+  const payload = {
     panoramaPath,
     visionBoardPath,
-    panoramaUrl: panoramaPath,
-    visionBoardUrl: visionBoardPath,
-    "panorama-url": panoramaPath,
-    "visionboard-url": visionBoardPath,
-    "vision_board_path": visionBoardPath,
   };
 
   console.log("TRIGGERING N8N WORKFLOW", payload);

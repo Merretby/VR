@@ -19,7 +19,6 @@ import {
 } from "@/lib/room-model";
 import { FURNITURE_LIBRARY, checkFit, getSpec } from "@/lib/furniture";
 import { activeDesign, roomActions, useRoomProject } from "@/lib/room-store";
-import { savePanorama } from "@/lib/photos";
 import { DESIGN_STYLES, getStyle } from "@/lib/design-styles";
 
 const RoomExperience = lazy(() => import("@/components/room3d/RoomExperience"));
@@ -69,19 +68,6 @@ function StudioPage() {
   const hasErrors = issues.some((i) => i.level === "error");
 
   useEffect(() => setMounted(true), []);
-
-  const handleAutoCapturePanorama = useCallback(async (dataUrl: string) => {
-    try {
-      const result = await savePanorama({
-        data: { projectId: "default-project", image: dataUrl },
-      });
-      toast.success("360° panorama saved to database");
-      console.log("Panorama saved:", result.filePath);
-    } catch (err) {
-      console.warn("Panorama DB save failed:", err);
-      toast.error("Panorama could not be saved to the database.");
-    }
-  }, []);
 
   const original = project.designs.find((d) => d.id === "original") ?? design;
   const selected = design.furniture.find((f) => f.id === selectedId) ?? null;
@@ -154,8 +140,6 @@ function StudioPage() {
                     photos={project.photos}
                     selectedId={selectedId}
                     onSelect={setSelectedId}
-                    autoCapturePanorama
-                    onAutoCapturePanorama={handleAutoCapturePanorama}
                   />
                 </Suspense>
               ) : (

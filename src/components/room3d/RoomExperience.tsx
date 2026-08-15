@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, useProgress } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import { XR, XROrigin, createXRStore } from "@react-three/xr";
 import * as THREE from "three";
 import { RoomScene } from "./RoomScene";
@@ -24,18 +24,12 @@ function PanoramaExporterBridge({
   onRegisterExport,
   onRegisterCapture,
   plan,
-  autoCapture,
-  onAutoCapture,
 }: {
   onRegisterExport: (fn: () => void) => void;
   onRegisterCapture: (fn: () => string) => void;
   plan: FloorPlan;
-  autoCapture?: boolean | undefined;
-  onAutoCapture?: ((dataUrl: string) => void) | undefined;
 }) {
   const { gl, scene } = useThree();
-  const { active } = useProgress();
-  const capturedRef = useRef(false);
 
   const capture = useCallback(
     (resolution = 4096) => {
@@ -60,19 +54,6 @@ function PanoramaExporterBridge({
       }
     });
   }, [onRegisterExport, capture]);
-
-  useEffect(() => {
-    if (!autoCapture || active || capturedRef.current) return;
-    capturedRef.current = true;
-    const t = setTimeout(() => {
-      try {
-        onAutoCapture?.(capture(2048));
-      } catch (err) {
-        console.error("Auto panorama capture failed", err);
-      }
-    }, 500);
-    return () => clearTimeout(t);
-  }, [autoCapture, active, onAutoCapture, capture]);
 
   return null;
 }
@@ -135,16 +116,12 @@ export default function RoomExperience({
   photos,
   selectedId,
   onSelect,
-  autoCapturePanorama,
-  onAutoCapturePanorama,
 }: {
   plan: FloorPlan;
   design: Design;
   photos?: Partial<Record<string, string>> | undefined;
   selectedId?: string | null | undefined;
   onSelect?: ((id: string) => void) | undefined;
-  autoCapturePanorama?: boolean | undefined;
-  onAutoCapturePanorama?: ((dataUrl: string) => void) | undefined;
 }) {
   const [mode, setMode] = useState<ViewMode>("orbit");
   const [userShowCeiling, setUserShowCeiling] = useState(true);
@@ -242,8 +219,6 @@ export default function RoomExperience({
           onRegisterExport={handleRegisterExport}
           onRegisterCapture={handleRegisterCapture}
           plan={plan}
-          autoCapture={autoCapturePanorama}
-          onAutoCapture={onAutoCapturePanorama}
         />
       </Canvas>
 
