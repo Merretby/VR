@@ -527,6 +527,100 @@ export type PanoramaRecord = {
   createdAt: string;
 };
 
+// n8n saves the AI-designed panorama into `panoramas-designed/`. The file may
+// live under the project-scoped folder `projects/{projectId}/panoramas-designed/`
+// or at the bucket-root `panoramas-designed/`. We match by the Panorama ID so
+// every panorama resolves its After image automatically.
+
+const PANORAMA_DESIGNED_FOLDER = "panoramas-designed";
+
+const ORIGINAL_PANORAMA_NAME_PATTERN = /panorama-([^.]+)\.(png|jpe?g|webp)$/i;
+
+function extractPanoramaIdFromFilePath(filePath: string): string | null {
+  const fileName = filePath.split("/").pop() ?? filePath;
+
+  return fileName.match(ORIGINAL_PANORAMA_NAME_PATTERN)?.[1] ?? null;
+}
+
+const designedFolderCache = new Map<string, string[]>();
+
+async function listDesignedFolder(folderPath: string): Promise<string[]> {
+  const cached = designedFolderCache.get(folderPath);
+
+  if (cached) {
+    return cached;
+  }
+
+  const { supabase, SUPABASE_BUCKET } = await import("./supabase");
+
+  try {
+    const { data: files, error } = await supabase.storage
+      .from(SUPABASE_BUCKET)
+      .list(folderPath, { limit: 1000 });
+
+    if (error) {
+      console.error(`DESIGNED PANORAMA STORAGE LIST ERROR (${folderPath})`, error);
+
+      return [];
+    }
+
+    const names = (files ?? []).map((file) => file.name);
+
+    designedFolderCache.set(folderPath, names);
+
+    return names;
+  } catch (error) {
+    console.error(`DESIGNED PANORAMA STORAGE LIST ERROR (${folderPath})`, error);
+
+    return [];
+  }
+}
+
+function matchDesignedFileName(panoramaId: string, fileNames: string[]): string | null {
+  for (const name of fileNames) {
+    if (name === `test-panorama-${panoramaId}.png`) {
+      return name;
+    }
+
+    if (name.startsWith(`${panoramaId}-`)) {
+      return name;
+    }
+  }
+
+  return null;
+}
+
+async function resolveDesignedFilePath(row: {
+  id: string;
+  projectId: string;
+  filePath: string | null;
+}): Promise<string | null> {
+  const { supabase, SUPABASE_BUCKET } = await import("./supabase");
+
+  const idFromFilePath = row.filePath ? extractPanoramaIdFromFilePath(row.filePath) : null;
+
+  const panoramaId = idFromFilePath ?? row.id;
+
+  const folders = [
+    row.projectId ? `projects/${row.projectId}/${PANORAMA_DESIGNED_FOLDER}` : null,
+    PANORAMA_DESIGNED_FOLDER,
+  ].filter((folder): folder is string => Boolean(folder));
+
+  for (const folder of folders) {
+    const fileNames = await listDesignedFolder(folder);
+
+    const match = matchDesignedFileName(panoramaId, fileNames);
+
+    if (match) {
+      const { data } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(`${folder}/${match}`);
+
+      return data.publicUrl;
+    }
+  }
+
+  return null;
+}
+
 export async function handleListPanoramas(): Promise<Response> {
   const { supabase } = await import("./supabase");
 
@@ -548,21 +642,30 @@ export async function handleListPanoramas(): Promise<Response> {
 
     const djMap = new Map((designJobs ?? []).map((dj) => [dj.panorama_id, dj]));
 
-    const panoramas = (data ?? []).map((row): PanoramaRecord => {
-      const dj = djMap.get(row.id);
-      const designedFilePath = row.designed_file_path || dj?.output_image_url || null;
-      const isCompleted = Boolean(designedFilePath) || row.status === "completed" || dj?.status === "completed";
-      const status = isCompleted && designedFilePath ? "completed" : row.status;
+    const panoramas = await Promise.all(
+      (data ?? []).map(async (row): Promise<PanoramaRecord> => {
+        const dj = djMap.get(row.id);
+        const designedFromStorage = await resolveDesignedFilePath({
+          id: row.id,
+          projectId: row.project_id,
+          filePath: row.file_path,
+        });
+        const designedFilePath =
+          designedFromStorage || row.designed_file_path || dj?.output_image_url || null;
+        const isCompleted =
+          Boolean(designedFilePath) || row.status === "completed" || dj?.status === "completed";
+        const status = isCompleted && designedFilePath ? "completed" : row.status;
 
-      return {
-        id: row.id,
-        projectId: row.project_id,
-        filePath: row.file_path,
-        designedFilePath,
-        status,
-        createdAt: row.created_at,
-      };
-    });
+        return {
+          id: row.id,
+          projectId: row.project_id,
+          filePath: row.file_path,
+          designedFilePath,
+          status,
+          createdAt: row.created_at,
+        };
+      }),
+    );
 
     return Response.json({
       success: true,
