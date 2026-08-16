@@ -9,6 +9,7 @@ import type { Design, FloorPlan } from "@/lib/room-model";
 import { Button } from "@/components/ui/button";
 import { capture360Panorama, downloadDataUrl } from "@/lib/panorama-export";
 import { savePanorama } from "@/lib/photos";
+import { getActiveProjectId } from "@/lib/project-store";
 import { toast } from "sonner";
 
 export type ViewMode = "orbit" | "top" | "panorama";
@@ -153,8 +154,9 @@ export default function RoomExperience({
 
     try {
       const dataUrl = captureRef.current();
+      const projectId = getActiveProjectId() ?? "default-project";
       const result = await savePanorama({
-        data: { projectId: "default-project", image: dataUrl },
+        data: { projectId, image: dataUrl },
       });
       toast.success("360° panorama saved — entering VR");
       console.log("Panorama saved:", result.filePath);

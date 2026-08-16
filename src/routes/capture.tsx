@@ -7,7 +7,8 @@ import { roomActions, useRoomProject } from "@/lib/room-store";
 import { buildFloorPlan, SURFACE_META, SURFACE_ORDER, type SurfaceKey } from "@/lib/room-model";
 import { CornerSelection } from "@/components/room3d/CornerSelection";
 import { resizeImage, cropImage, type Point } from "@/lib/image-processor";
-import { processPhoto } from "@/lib/photos";
+import { createProject, processPhoto } from "@/lib/photos";
+import { getActiveProjectId, setActiveProjectId } from "@/lib/project-store";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import exampleRight from "@/assets/example-right-wall.jpg";
@@ -66,6 +67,31 @@ function CapturePage() {
   const [corners, setCorners] = useState<[Point, Point, Point, Point] | null>(null);
   const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const projectIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const ensureProject = async () => {
+      if (projectIdRef.current) return;
+
+      const stored = getActiveProjectId();
+
+      if (stored) {
+        projectIdRef.current = stored;
+        return;
+      }
+
+      try {
+        const { projectId } = await createProject();
+        setActiveProjectId(projectId);
+        projectIdRef.current = projectId;
+      } catch (error) {
+        console.error("Could not create project:", error);
+        toast.error("Could not create a project. Photos will not be saved.");
+      }
+    };
+
+    void ensureProject();
+  }, []);
 
   const surface = SURFACE_ORDER[index]!;
   const meta = SURFACE_META[surface];
@@ -87,7 +113,7 @@ function CapturePage() {
       // 3. Upload to backend in the background (non-blocking)
       processPhoto({
         data: {
-          projectId: "default-project",
+          projectId: projectIdRef.current ?? "default-project",
           wallKey: surface,
           image: croppedBase64,
           corners

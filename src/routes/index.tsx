@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, MouseEvent } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
-import { savePanorama } from "@/lib/photos";
+import { createProject, savePanorama } from "@/lib/photos";
+import { setActiveProjectId } from "@/lib/project-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -61,8 +62,10 @@ function UploadPanorama({ variant = "card" }: { variant?: "card" | "button" }) {
     reader.onload = async () => {
       setBusy(true);
       try {
+        const { projectId } = await createProject();
+        setActiveProjectId(projectId);
         await savePanorama({
-          data: { projectId: "default-project", image: String(reader.result) },
+          data: { projectId, image: String(reader.result) },
         });
         toast.success("Panorama uploaded ✓");
         navigate({ to: "/vr" });
@@ -118,6 +121,19 @@ function UploadPanorama({ variant = "card" }: { variant?: "card" | "button" }) {
 }
 
 function Landing() {
+  const navigate = useNavigate();
+
+  const startCapture = async () => {
+    try {
+      const { projectId } = await createProject();
+      setActiveProjectId(projectId);
+      await navigate({ to: "/capture" });
+    } catch (error) {
+      console.error("Could not start room capture:", error);
+      toast.error("Could not start a new project. Check the server terminal.");
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <AppHeader />
@@ -139,6 +155,10 @@ function Landing() {
               <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2 lg:grid-cols-3">
                 <Link
                   to="/capture"
+                  onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+                    event.preventDefault();
+                    void startCapture();
+                  }}
                   className="group rounded-xl border bg-card p-4 transition-colors hover:border-primary sm:p-5"
                 >
                   <span className="text-2xl">📸</span>
@@ -210,8 +230,8 @@ function Landing() {
             </div>
 
             <div className="mt-10 flex flex-wrap gap-3">
-              <Button asChild size="lg">
-                <Link to="/capture">📸 Capture My Room</Link>
+              <Button size="lg" onClick={startCapture}>
+                📸 Capture My Room
               </Button>
               <UploadPanorama variant="button" />
               <Button asChild size="lg" variant="secondary">

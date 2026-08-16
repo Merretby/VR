@@ -27,6 +27,105 @@ function getExtension(mimeType: string) {
 }
 
 // =====================================================
+// SEQUENTIAL HUMAN-READABLE IDS
+// =====================================================
+// Projects, panoramas and photos use readable sequential ids instead of
+// random UUIDs:
+//   projects  -> project_1, project_2, ...
+//   panoramas -> panorama_before_1, panorama_before_2, ...
+//   photos    -> picture-1, picture-2, ...
+// The next number is computed from the existing rows and the insert retries
+// on a unique-violation race (two writers picking the same number).
+
+const UNIQUE_VIOLATION = "23505";
+
+function extractTrailingNumber(id: string): number | null {
+  const match = id.match(/(\d+)\s*$/);
+
+  return match ? parseInt(match[1]!, 10) : null;
+}
+
+async function nextCandidateId(
+  table: "projects" | "panoramas" | "photos",
+  prefix: string,
+): Promise<string> {
+  const { supabase } = await import("./supabase");
+
+  const { data, error } = await supabase.from(table).select("id");
+
+  if (error) {
+    throw error;
+  }
+
+  let max = 0;
+
+  for (const row of data ?? []) {
+    const id = String(row.id);
+    const number = extractTrailingNumber(id);
+
+    if (typeof number === "number" && id.startsWith(prefix) && number > max) {
+      max = number;
+    }
+  }
+
+  return `${prefix}${max + 1}`;
+}
+
+async function nextProjectId(): Promise<string> {
+  const { supabase } = await import("./supabase");
+
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const id = await nextCandidateId("projects", "project_");
+
+    const { error } = await supabase.from("projects").insert({ id });
+
+    if (!error) {
+      return id;
+    }
+
+    if (error.code !== UNIQUE_VIOLATION) {
+      throw error;
+    }
+  }
+
+  throw new Error("Could not allocate a sequential project id");
+}
+
+async function ensureProject(projectId: string): Promise<string> {
+  const { supabase } = await import("./supabase");
+
+  if (projectId && projectId !== "default-project") {
+    const { data: existing, error: findError } = await supabase
+      .from("projects")
+      .select("id")
+      .eq("id", projectId)
+      .maybeSingle();
+
+    if (findError) {
+      throw findError;
+    }
+
+    if (existing) {
+      return projectId;
+    }
+  }
+
+  return nextProjectId();
+}
+
+export const createProject = createServerFn({
+  method: "POST",
+})
+  .validator(() => ({}))
+  .handler(async () => {
+    const projectId = await nextProjectId();
+
+    console.log("PROJECT CREATED", projectId);
+
+    return { success: true, projectId };
+  });
+
+// =====================================================
 // PROCESS PHOTO
 // =====================================================
 
@@ -42,8 +141,6 @@ export const processPhoto = createServerFn({
     }) => data,
   )
   .handler(async ({ data }) => {
-    const crypto = await import("crypto");
-
     const { supabase, SUPABASE_BUCKET } = await import("./supabase");
 
     try {
@@ -55,10 +152,6 @@ export const processPhoto = createServerFn({
         imageLength: image?.length,
       });
 
-      if (!projectId) {
-        throw new Error("Missing projectId");
-      }
-
       if (!wallKey) {
         throw new Error("Missing wallKey");
       }
@@ -67,26 +160,7 @@ export const processPhoto = createServerFn({
         throw new Error("Missing image or corners");
       }
 
-      // Ensure project exists
-      const { data: existingProject, error: projectFindError } = await supabase
-        .from("projects")
-        .select("id")
-        .eq("id", projectId)
-        .maybeSingle();
-
-      if (projectFindError) {
-        throw projectFindError;
-      }
-
-      if (!existingProject) {
-        const { error: projectCreateError } = await supabase.from("projects").insert({
-          id: projectId,
-        });
-
-        if (projectCreateError) {
-          throw projectCreateError;
-        }
-      }
+      const project = await ensureProject(projectId);
 
       // Convert image
       const buffer = base64ToBuffer(image);
@@ -95,67 +169,72 @@ export const processPhoto = createServerFn({
 
       const extension = getExtension(mimeType);
 
-      const photoId = crypto.randomUUID();
+      let photoId = "";
+      let filePath = "";
 
-      const storagePath = `projects/${projectId}/photos/${photoId}.${extension}`;
+      for (let attempt = 0; attempt < 20; attempt++) {
+        photoId = await nextCandidateId("photos", "picture-");
 
-      console.log("UPLOADING PHOTO TO STORAGE", {
-        bucket: SUPABASE_BUCKET,
-        storagePath,
-        mimeType,
-        size: buffer.length,
-      });
+        const storagePath = `projects/${project}/photos/${photoId}.${extension}`;
 
-      // Upload photo
-      const { data: storageData, error: storageError } = await supabase.storage
-        .from(SUPABASE_BUCKET)
-        .upload(storagePath, buffer, {
-          contentType: mimeType,
-          upsert: false,
-          cacheControl: "3600",
+        console.log("UPLOADING PHOTO TO STORAGE", {
+          bucket: SUPABASE_BUCKET,
+          storagePath,
+          mimeType,
+          size: buffer.length,
         });
 
-      if (storageError) {
-        console.error("PHOTO STORAGE ERROR", storageError);
+        // Upload photo
+        const { data: storageData, error: storageError } = await supabase.storage
+          .from(SUPABASE_BUCKET)
+          .upload(storagePath, buffer, {
+            contentType: mimeType,
+            upsert: false,
+            cacheControl: "3600",
+          });
 
-        throw storageError;
-      }
+        if (storageError) {
+          console.error("PHOTO STORAGE ERROR", storageError);
 
-      console.log("PHOTO STORAGE UPLOAD OK", storageData);
+          throw storageError;
+        }
 
-      // Public URL
-      const { data: publicUrlData } = supabase.storage
-        .from(SUPABASE_BUCKET)
-        .getPublicUrl(storageData.path);
+        console.log("PHOTO STORAGE UPLOAD OK", storageData);
 
-      const filePath = publicUrlData.publicUrl;
+        // Public URL
+        const { data: publicUrlData } = supabase.storage
+          .from(SUPABASE_BUCKET)
+          .getPublicUrl(storagePath);
 
-      // Save photo in DB
-      const { data: photo, error: photoError } = await supabase
-        .from("photos")
-        .insert({
+        filePath = publicUrlData.publicUrl;
+
+        // Save photo in DB
+        const { error: photoError } = await supabase.from("photos").insert({
           id: photoId,
           wall_key: wallKey,
           file_path: filePath,
-          project_id: projectId,
-        })
-        .select()
-        .single();
+          project_id: project,
+        });
 
-      if (photoError) {
-        console.error("PHOTO DB ERROR", photoError);
+        if (!photoError) {
+          break;
+        }
+
+        console.warn("PHOTO DB INSERT CONFLICT, retrying", photoError);
 
         await supabase.storage.from(SUPABASE_BUCKET).remove([storagePath]);
 
-        throw photoError;
+        if (photoError.code !== UNIQUE_VIOLATION) {
+          throw photoError;
+        }
       }
 
-      console.log("PHOTO DB INSERT OK", photo);
+      console.log("PHOTO DB INSERT OK", { photoId, filePath, project });
 
       return {
         success: true,
-        filePath: photo.file_path,
-        photoId: photo.id,
+        filePath,
+        photoId,
       };
     } catch (error) {
       console.error("Backend photo processing error:", error);
@@ -173,8 +252,6 @@ export const savePanorama = createServerFn({
 })
   .validator((data: { projectId: string; image: string }) => data)
   .handler(async ({ data }) => {
-    const crypto = await import("crypto");
-
     const { supabase, SUPABASE_BUCKET } = await import("./supabase");
 
     try {
@@ -185,38 +262,11 @@ export const savePanorama = createServerFn({
         imageLength: image?.length,
       });
 
-      if (!projectId) {
-        throw new Error("Missing projectId");
-      }
-
       if (!image) {
         throw new Error("Missing image");
       }
 
-      // Ensure project exists
-      const { data: existingProject, error: projectFindError } = await supabase
-        .from("projects")
-        .select("id")
-        .eq("id", projectId)
-        .maybeSingle();
-
-      if (projectFindError) {
-        console.error("PROJECT FIND ERROR", projectFindError);
-
-        throw projectFindError;
-      }
-
-      if (!existingProject) {
-        const { error: projectCreateError } = await supabase.from("projects").insert({
-          id: projectId,
-        });
-
-        if (projectCreateError) {
-          console.error("PROJECT CREATE ERROR", projectCreateError);
-
-          throw projectCreateError;
-        }
-      }
+      const project = await ensureProject(projectId);
 
       // Convert panorama
       const originalBuffer = base64ToBuffer(image);
@@ -241,60 +291,73 @@ export const savePanorama = createServerFn({
 
       const extension = getExtension(mimeType);
 
-      const panoramaId = crypto.randomUUID();
+      let panoramaId = "";
+      let filePath = "";
 
-      const storagePath = `projects/${projectId}/panoramas/${panoramaId}.${extension}`;
+      for (let attempt = 0; attempt < 20; attempt++) {
+        panoramaId = await nextCandidateId("panoramas", "panorama_before_");
 
-      console.log("UPLOADING PANORAMA TO STORAGE", {
-        bucket: SUPABASE_BUCKET,
-        storagePath,
-        mimeType,
-        size: enhancedBuffer.length,
-      });
+        const storagePath = `projects/${project}/panoramas/${panoramaId}.${extension}`;
 
-      // Upload panorama
-      const { data: storageData, error: storageError } = await supabase.storage
-        .from(SUPABASE_BUCKET)
-        .upload(storagePath, enhancedBuffer, {
-          contentType: mimeType,
-          upsert: false,
-          cacheControl: "3600",
+        console.log("UPLOADING PANORAMA TO STORAGE", {
+          bucket: SUPABASE_BUCKET,
+          storagePath,
+          mimeType,
+          size: enhancedBuffer.length,
         });
 
-      if (storageError) {
-        console.error("PANORAMA STORAGE ERROR", storageError);
+        // Upload panorama
+        const { data: storageData, error: storageError } = await supabase.storage
+          .from(SUPABASE_BUCKET)
+          .upload(storagePath, enhancedBuffer, {
+            contentType: mimeType,
+            upsert: false,
+            cacheControl: "3600",
+          });
 
-        throw storageError;
-      }
+        if (storageError) {
+          console.error("PANORAMA STORAGE ERROR", storageError);
 
-      console.log("STORAGE UPLOAD OK", storageData);
+          throw storageError;
+        }
 
-      // Get public URL
-      const { data: publicUrlData } = supabase.storage
-        .from(SUPABASE_BUCKET)
-        .getPublicUrl(storageData.path);
+        console.log("STORAGE UPLOAD OK", storageData);
 
-      const filePath = publicUrlData.publicUrl;
+        // Get public URL
+        const { data: publicUrlData } = supabase.storage
+          .from(SUPABASE_BUCKET)
+          .getPublicUrl(storagePath);
 
-      console.log("PANORAMA PUBLIC URL", filePath);
+        filePath = publicUrlData.publicUrl;
 
-      // Insert panorama in DB
-      const { data: panorama, error: panoramaError } = await supabase
-        .from("panoramas")
-        .insert({
+        console.log("PANORAMA PUBLIC URL", filePath);
+
+        // Insert panorama in DB
+        const { error: panoramaError } = await supabase.from("panoramas").insert({
           id: panoramaId,
-          project_id: projectId,
+          project_id: project,
           file_path: filePath,
           designed_file_path: null,
           status: "pending",
-        })
-        .select()
-        .single();
+        });
+
+        if (!panoramaError) {
+          break;
+        }
+
+        console.warn("PANORAMA DB INSERT CONFLICT, retrying", panoramaError);
+
+        await supabase.storage.from(SUPABASE_BUCKET).remove([storagePath]);
+
+        if (panoramaError.code !== UNIQUE_VIOLATION) {
+          throw panoramaError;
+        }
+      }
 
       // Also create a design_jobs record for tracking
       try {
         await supabase.from("design_jobs").insert({
-          project_id: projectId,
+          project_id: project,
           panorama_id: panoramaId,
           source_image_url: filePath,
           status: "processing",
@@ -305,13 +368,13 @@ export const savePanorama = createServerFn({
         console.warn("design_jobs initial insert warning:", djErr);
       }
 
-      if (panoramaError) {
-        console.error("PANORAMA DB INSERT ERROR", panoramaError);
-
-        await supabase.storage.from(SUPABASE_BUCKET).remove([storagePath]);
-
-        throw panoramaError;
-      }
+      const panorama = {
+        id: panoramaId,
+        project_id: project,
+        file_path: filePath,
+        designed_file_path: null,
+        status: "pending" as const,
+      };
 
       console.log("PANORAMA DB INSERT OK", panorama);
 
@@ -432,19 +495,11 @@ async function triggerN8nWorkflow(panorama: {
   const visionBoardPath = await resolveVisionBoardPath(panorama.project_id);
 
   const payload = {
-<<<<<<< HEAD
-  panoramaId: panorama.id,
-  projectId: panorama.project_id,
-  panoramaPath,
-  visionBoardPath,
-};
-=======
     panoramaId: panorama.id,
     projectId: panorama.project_id,
     panoramaPath,
     visionBoardPath,
   };
->>>>>>> b6e53544b30947216f94c7c1af579173fe505ead
 
   console.log("TRIGGERING N8N WORKFLOW", payload);
 
@@ -608,6 +663,17 @@ function matchDesignedFileName(panoramaId: string, fileNames: string[]): string 
 
     if (name.startsWith(`${panoramaId}-`)) {
       return name;
+    }
+  }
+
+  // before/after pairing: panorama_before_3 matches panorama_after_3-...
+  const afterId = panoramaId.replace(/^panorama_before_/i, "panorama_after_");
+
+  if (afterId !== panoramaId) {
+    for (const name of fileNames) {
+      if (name.startsWith(`${afterId}-`)) {
+        return name;
+      }
     }
   }
 
@@ -1056,7 +1122,9 @@ export async function handleReceiveGeneratedPanorama(request: Request): Promise<
         const buffer = Buffer.from(await generatedFile.arrayBuffer());
         const extension = getExtension(generatedFile.type);
 
-        const storagePath = `projects/${projectId}/panoramas-designed/${panoramaId}-${crypto.randomUUID()}.${extension}`;
+        const afterId = panoramaId.replace(/^panorama_before_/i, "panorama_after_");
+
+        const storagePath = `projects/${projectId}/panoramas-designed/${afterId}-${crypto.randomUUID()}.${extension}`;
 
         const { error: uploadError } = await supabase.storage
           .from(SUPABASE_BUCKET)
