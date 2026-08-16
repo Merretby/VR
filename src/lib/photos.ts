@@ -1254,6 +1254,74 @@ export async function handleReceiveGeneratedPanorama(request: Request): Promise<
 }
 
 // =====================================================
+// =====================================================
+// SAVE CAPTURED PHOTOS (BATCH)
+// =====================================================
+// Saves only the user-selected photos to Supabase storage
+// and records them in the photos table.
+
+export const saveCapturedPhotos = createServerFn({
+  method: "POST",
+})
+  .validator((data: { projectId?: string | undefined; photos: string[] }) => data)
+  .handler(async ({ data }) => {
+    const { supabase, SUPABASE_BUCKET } = await import("./supabase");
+    const crypto = await import("crypto");
+
+    try {
+      const projectId = data.projectId || "default-project";
+      const project = await ensureProject(projectId);
+      const savedUrls: string[] = [];
+
+      for (let i = 0; i < data.photos.length; i++) {
+        const image = data.photos[i]!;
+        const buffer = base64ToBuffer(image);
+        const mimeType = getMimeType(image);
+        const extension = getExtension(mimeType);
+        const photoId = `photo-${Date.now()}-${i}-${crypto.randomUUID().slice(0, 6)}`;
+        const storagePath = `projects/${project}/photos/${photoId}.${extension}`;
+
+        const { error: storageError } = await supabase.storage
+          .from(SUPABASE_BUCKET)
+          .upload(storagePath, buffer, {
+            contentType: mimeType,
+            upsert: false,
+            cacheControl: "3600",
+          });
+
+        if (storageError) {
+          console.error("Storage upload error for photo", i, storageError);
+          continue;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from(SUPABASE_BUCKET)
+          .getPublicUrl(storagePath);
+
+        const filePath = publicUrlData.publicUrl;
+        savedUrls.push(filePath);
+
+        await supabase.from("photos").insert({
+          id: photoId,
+          wall_key: `room-photo-${i + 1}`,
+          file_path: filePath,
+          project_id: project,
+        });
+      }
+
+      console.log("SAVED SELECTED PHOTOS", { count: savedUrls.length, project });
+
+      return {
+        success: true,
+        count: savedUrls.length,
+        urls: savedUrls,
+      };
+    } catch (error) {
+      console.error("saveCapturedPhotos error:", error);
+      throw error;
+    }
+  });
+
 // SAVE VISION BOARD
 // =====================================================
 // Uploads a vision board image for a project and saves

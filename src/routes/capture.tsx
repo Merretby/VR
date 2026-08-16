@@ -2,314 +2,609 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
-import { CameraView } from "@/components/camera/CameraView";
-import { roomActions, useRoomProject } from "@/lib/room-store";
-import { buildFloorPlan, SURFACE_META, SURFACE_ORDER, type SurfaceKey } from "@/lib/room-model";
-import { CornerSelection } from "@/components/room3d/CornerSelection";
-import { resizeImage, cropImage, type Point } from "@/lib/image-processor";
-import { createProject, processPhoto } from "@/lib/photos";
+import { saveCapturedPhotos, saveVisionBoard, createProject } from "@/lib/photos";
 import { getActiveProjectId, setActiveProjectId } from "@/lib/project-store";
-import { Loader2 } from "lucide-react";
+import { Check, CheckCircle2, ImagePlus, Loader2, Plus, Sparkles, Trash2, Camera, ArrowRight, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import exampleRight from "@/assets/example-right-wall.jpg";
-import exampleFront from "@/assets/example-front-wall.jpg";
-import exampleLeft from "@/assets/example-left-wall.jpg";
-import exampleBack from "@/assets/example-back-wall.jpg";
-import exampleFloor from "@/assets/example-floor.png";
-import exampleCeiling from "@/assets/example-ceiling.png";
+import moodboardDefault from "@/assets/moodboards/moodbord.jpg";
+import moodboard1 from "@/assets/moodboards/moodbord-1.jpg";
+import moodboard2 from "@/assets/moodboards/moodbord-2.jpg";
 
 export const Route = createFileRoute("/capture")({
   head: () => ({
     meta: [
-      { title: "Guided Room Capture — Roomcast Studio" },
+      { title: "Capture & Redesign Room — Roomcast Studio" },
       {
         name: "description",
-        content:
-          "Photograph your room wall by wall in a fixed order: right wall, front wall with the window, left wall, then the back wall with the door.",
+        content: "Take photos of your room, select the best shots, choose your interior moodboard, and experience your 360° AI redesign in VR.",
       },
-      { property: "og:title", content: "Guided Room Capture — Roomcast Studio" },
-      {
-        property: "og:description",
-        content: "Four guided photos with an example for each wall, then confirm and measure.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: CapturePage,
 });
 
-const EXAMPLES: Record<SurfaceKey, string> = {
-  right: exampleRight,
-  front: exampleFront,
-  left: exampleLeft,
-  back: exampleBack,
-  floor: exampleFloor,
-  ceiling: exampleCeiling,
-};
+type Phase = "camera" | "select" | "moodboard";
 
-const CHECKLIST = [
-  "Stand far enough back that the entire wall is visible",
-  "Keep the camera level and straight-on to the wall",
-  "Include the floor line and the ceiling line",
-  "Make sure the lighting is even, no strong glare",
-  "No part of the wall may be cut off",
+interface MoodboardOption {
+  id: string;
+  name: string;
+  subtitle: string;
+  image: string;
+  tags: string[];
+}
+
+const MOODBOARDS: MoodboardOption[] = [
+  {
+    id: "luxury-warmth",
+    name: "Modern Luxury & Warm Elegance",
+    subtitle: "Warm amber lighting, marble accents, rich walnut wood, and plush editorial seating.",
+    image: moodboardDefault,
+    tags: ["Warm Wood", "Marble", "Ambient Light", "Editorial"],
+  },
+  {
+    id: "japandi-minimal",
+    name: "Japandi & Organic Minimalist",
+    subtitle: "Clean lines, light oak, earthy neutral tones, textured linen, and airy open spaces.",
+    image: moodboard1,
+    tags: ["Light Oak", "Linen", "Minimalist", "Serene"],
+  },
+  {
+    id: "contemporary-chic",
+    name: "Contemporary Architectural Chic",
+    subtitle: "Sleek sculptural furniture, soft matte brass, neutral boucle, and curated gallery decor.",
+    image: moodboard2,
+    tags: ["Bouclé", "Matte Brass", "Architectural", "Sculptural"],
+  },
 ];
 
-type Phase = "example" | "camera" | "review" | "review_crop";
-
 function CapturePage() {
-  const project = useRoomProject();
   const navigate = useNavigate();
-  const [index, setIndex] = useState(0);
-  const [phase, setPhase] = useState<Phase>("example");
-  const [shot, setShot] = useState<string | null>(null);
-  const [corners, setCorners] = useState<[Point, Point, Point, Point] | null>(null);
-  const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const projectIdRef = useRef<string | null>(null);
+  const [phase, setPhase] = useState<Phase>("camera");
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
+  const [selectedMoodboard, setSelectedMoodboard] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savingMessage, setSavingMessage] = useState("");
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [isFlashActive, setIsFlashActive] = useState(false);
+  const projectIdRef = useRef<string>("default-project");
+
+  // Ensure project exists
   useEffect(() => {
-    const ensureProject = async () => {
-      if (projectIdRef.current) return;
-
+    const ensureProj = async () => {
       const stored = getActiveProjectId();
-
       if (stored) {
         projectIdRef.current = stored;
         return;
       }
-
       try {
         const { projectId } = await createProject();
-        setActiveProjectId(projectId);
-        projectIdRef.current = projectId;
-      } catch (error) {
-        console.error("Could not create project:", error);
-        toast.error("Could not create a project. Photos will not be saved.");
+        if (projectId) {
+          setActiveProjectId(projectId);
+          projectIdRef.current = projectId;
+        }
+      } catch (err) {
+        console.warn("Project init fallback to default-project", err);
       }
     };
-
-    void ensureProject();
+    void ensureProj();
   }, []);
 
-  const surface = SURFACE_ORDER[index]!;
-  const meta = SURFACE_META[surface];
-  const example = EXAMPLES[surface];
+  // Initialize camera when in camera phase
+  useEffect(() => {
+    if (phase !== "camera") {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+      return;
+    }
 
-  const confirm = async () => {
-    if (!shot || !corners) return;
-    
-    setIsProcessing(true);
-    
-    try {
-      // 1. Perspective-crop on the frontend (pure JS, no OpenCV needed)
-      const croppedBase64 = await cropImage(shot, corners);
-      
-      // 2. Show the cropped image immediately to the user
-      setCroppedImageUrl(croppedBase64);
-      setPhase("review_crop");
-      
-      // 3. Upload to backend in the background (non-blocking)
-      processPhoto({
-        data: {
-          projectId: projectIdRef.current ?? "default-project",
-          wallKey: surface,
-          image: croppedBase64,
-          corners
+    let cancelled = false;
+    navigator.mediaDevices
+      ?.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false })
+      .then((stream) => {
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
         }
-      }).catch((err) => {
-        console.warn("Backend save failed, using local crop:", err);
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        setCameraError(null);
+      })
+      .catch(() => {
+        setCameraError("Camera permission not granted or unavailable. You can upload photos directly below.");
       });
-    } catch (err) {
-      console.error("Failed to crop image:", err);
-      toast.error("Failed to crop the image. Please try again.");
-      // Stay on the crop screen
+
+    return () => {
+      cancelled = true;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [phase]);
+
+  // Snap photo from live camera
+  const handleSnapPhoto = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 960;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.88);
+
+    // Visual shutter flash effect
+    setIsFlashActive(true);
+    setTimeout(() => setIsFlashActive(false), 150);
+
+    setPhotos((prev) => {
+      const updated = [...prev, dataUrl];
+      // By default select all taken photos
+      setSelectedIndices(new Set(updated.map((_, i) => i)));
+      return updated;
+    });
+
+    toast.success(`Photo #${photos.length + 1} captured!`);
+  };
+
+  // Batch file upload handler
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+
+    let processed = 0;
+    const newPhotos: string[] = [];
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          newPhotos.push(reader.result);
+        }
+        processed++;
+        if (processed === files.length) {
+          setPhotos((prev) => {
+            const updated = [...prev, ...newPhotos];
+            setSelectedIndices(new Set(updated.map((_, i) => i)));
+            return updated;
+          });
+          toast.success(`Added ${newPhotos.length} photos!`);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    e.target.value = "";
+  };
+
+  // Remove single photo
+  const handleRemovePhoto = (indexToRemove: number) => {
+    setPhotos((prev) => {
+      const updated = prev.filter((_, i) => i !== indexToRemove);
+      setSelectedIndices((prevSelected) => {
+        const nextSelected = new Set<number>();
+        Array.from(prevSelected).forEach((idx) => {
+          if (idx < indexToRemove) nextSelected.add(idx);
+          else if (idx > indexToRemove) nextSelected.add(idx - 1);
+        });
+        return nextSelected;
+      });
+      return updated;
+    });
+  };
+
+  // Toggle selection
+  const toggleSelectPhoto = (idx: number) => {
+    setSelectedIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) {
+        next.delete(idx);
+      } else {
+        next.add(idx);
+      }
+      return next;
+    });
+  };
+
+  // Step 2: Confirm selected photos and save to database
+  const handleSaveSelectedPhotos = async () => {
+    const selectedList = photos.filter((_, i) => selectedIndices.has(i));
+    if (!selectedList.length) {
+      toast.error("Please select at least one photo to continue.");
+      return;
+    }
+
+    setIsSaving(true);
+    setSavingMessage(`Saving ${selectedList.length} photos to database…`);
+
+    try {
+      await saveCapturedPhotos({
+        data: {
+          projectId: projectIdRef.current,
+          photos: selectedList,
+        },
+      });
+      toast.success(`${selectedList.length} photos saved to database ✓`);
+      setPhase("moodboard");
+    } catch (error) {
+      console.error("Failed to save photos to database:", error);
+      toast.error("Photos could not be saved to the database. Continuing to moodboard.");
+      setPhase("moodboard");
     } finally {
-      setIsProcessing(false);
+      setIsSaving(false);
+      setSavingMessage("");
     }
   };
 
-  const handleContinue = () => {
-    if (!croppedImageUrl) return;
-    
-    roomActions.setPhoto(surface, croppedImageUrl);
-    setShot(null);
-    setCorners(null);
-    setCroppedImageUrl(null);
-    
-    if (index === SURFACE_ORDER.length - 1) {
-      const plan = buildFloorPlan({
-        widthM: project.plan.widthM,
-        lengthM: project.plan.lengthM,
-        heightM: project.plan.heightM,
-        wallThickness: project.plan.walls[0]?.thickness ?? 0.12,
-        openings: project.plan.openings,
-      });
-      roomActions.setPlan(plan, "capture");
-      navigate({ to: "/plan" });
-    } else {
-      setIndex(index + 1);
-      setPhase("example");
+  // Step 3: Choose moodboard & redirect to /vr
+  const handleSelectMoodboard = async (moodboard: MoodboardOption) => {
+    setSelectedMoodboard(moodboard.id);
+    setIsSaving(true);
+    setSavingMessage(`Applying ${moodboard.name}…`);
+
+    try {
+      // Convert asset image URL to base64 if needed or send direct image path
+      const res = await fetch(moodboard.image);
+      const blob = await res.blob();
+      const reader = new FileReader();
+
+      reader.onloadend = async () => {
+        try {
+          const base64data = reader.result as string;
+          await saveVisionBoard({
+            data: {
+              projectId: projectIdRef.current,
+              image: base64data,
+            },
+          });
+          toast.success("Moodboard saved! Entering 360° VR View…");
+          navigate({ to: "/vr" });
+        } catch (err) {
+          console.error("Vision board save failed:", err);
+          navigate({ to: "/vr" });
+        }
+      };
+
+      reader.readAsDataURL(blob);
+    } catch (err) {
+      console.error("Moodboard selection failed:", err);
+      navigate({ to: "/vr" });
     }
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background text-foreground">
       <AppHeader current="/capture" />
-      <main className="mx-auto max-w-5xl px-3 py-5 sm:px-4 sm:py-8">
-        <p className="label-mono">Step {meta.step} of 6</p>
-        <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">{meta.title}</h1>
-        <p className="mt-1 text-xs text-muted-foreground sm:mt-2 sm:text-sm">{meta.hint}</p>
 
-        <div className="mt-5 flex gap-1.5 sm:gap-2">
-          {SURFACE_ORDER.map((key, i) => {
-            const done = Boolean(project.photos[key]);
-            return (
-              <div
-                key={key}
-                className={`h-1.5 flex-1 rounded-full ${
-                  done ? "bg-success" : i === index ? "bg-primary" : "bg-secondary"
-                }`}
+      {/* Global Saving Overlay */}
+      {isSaving && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 rounded-2xl border bg-card p-6 shadow-2xl">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="font-medium text-sm sm:text-base">{savingMessage}</p>
+          </div>
+        </div>
+      )}
+
+      <main className="mx-auto max-w-5xl px-3 py-5 sm:px-6 sm:py-8">
+        {/* ============================================================ */}
+        {/* PHASE 1: CAMERA MULTI-SHOT CAPTURE */}
+        {/* ============================================================ */}
+        {phase === "camera" && (
+          <div className="space-y-5">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="label-mono">Step 1 of 2 · Room Photography</p>
+                <h1 className="mt-1 text-2xl font-semibold sm:text-3xl font-serif">Capture Your Room</h1>
+                <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+                  Snap multiple pictures from different angles of your room. Take as many as you need!
+                </p>
+              </div>
+
+              {photos.length > 0 && (
+                <Button
+                  size="lg"
+                  className="mt-2 shadow-md sm:mt-0 font-medium"
+                  onClick={() => setPhase("select")}
+                >
+                  Review & Select ({photos.length}) <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+            </div>
+
+            {/* Viewfinder Container */}
+            <div className="relative overflow-hidden rounded-2xl border bg-black shadow-lg">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="aspect-[4/3] w-full object-cover max-h-[60vh]"
               />
-            );
-          })}
-        </div>
 
-        <div className="mt-5 sm:mt-8">
-          {phase === "example" && (
-            <div className="grid gap-4 sm:gap-6 md:grid-cols-[1.2fr_1fr]">
-              <figure>
-                <img
-                  src={example}
-                  alt={`Example photo of a ${meta.title.toLowerCase()} — ${meta.contains}`}
-                  width={2048}
-                  height={768}
-                  loading="lazy"
-                  className="w-full rounded-xl border object-cover"
-                />
-                <figcaption className="mt-2 text-xs text-muted-foreground">
-                  Example — {meta.contains}. Match this framing.
-                </figcaption>
-              </figure>
-              <div className="rounded-xl border bg-card p-4 sm:p-5">
-                <h2 className="text-sm font-semibold">Before you shoot</h2>
-                <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                  {CHECKLIST.map((c) => (
-                    <li key={c} className="flex gap-2">
-                      <span className="text-success">✓</span>
-                      <span>{c}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button className="mt-5 w-full" onClick={() => setPhase("camera")}>
-                  📷 Take Picture
+              {/* Shutter Flash */}
+              {isFlashActive && <div className="absolute inset-0 bg-white opacity-80 transition-opacity" />}
+
+              {/* Viewfinder Grid Overlay */}
+              <div className="pointer-events-none absolute inset-4 sm:inset-8 rounded-xl border border-white/20">
+                <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-25">
+                  <div className="border-r border-b border-white" />
+                  <div className="border-r border-b border-white" />
+                  <div className="border-b border-white" />
+                  <div className="border-r border-b border-white" />
+                  <div className="border-r border-b border-white" />
+                  <div className="border-b border-white" />
+                  <div className="border-r border-white" />
+                  <div className="border-r border-white" />
+                  <div />
+                </div>
+              </div>
+
+              {/* Floating Counter Badge */}
+              <div className="absolute top-4 left-4 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+                📸 {photos.length} {photos.length === 1 ? "photo" : "photos"} taken
+              </div>
+
+              {/* Camera Action Toolbar */}
+              <div className="absolute bottom-4 inset-x-0 flex items-center justify-center gap-4 px-4">
+                <Button
+                  type="button"
+                  size="lg"
+                  variant="secondary"
+                  className="rounded-full bg-white/20 text-white backdrop-blur hover:bg-white/30"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <ImagePlus className="mr-2 h-4 w-4" /> Upload
                 </Button>
+
+                <button
+                  type="button"
+                  onClick={handleSnapPhoto}
+                  className="group relative flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-white/30 backdrop-blur transition-transform active:scale-95 hover:bg-white/50"
+                  title="Snap Photo"
+                >
+                  <span className="h-12 w-12 rounded-full bg-white transition-transform group-hover:scale-95" />
+                </button>
+
+                {photos.length > 0 && (
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="rounded-full font-medium"
+                    onClick={() => setPhase("select")}
+                  >
+                    Done <ArrowRight className="ml-1 h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
-          )}
 
-          {phase === "camera" && (
-            <CameraView
-              onCancel={() => setPhase("example")}
-              onShot={async (dataUrl) => {
-                const resized = await resizeImage(dataUrl, 2048);
-                setShot(resized);
-                setPhase("review");
-              }}
+            {cameraError && (
+              <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-xs sm:text-sm text-destructive">
+                {cameraError}
+              </div>
+            )}
+
+            {/* Hidden Multi-file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleFileUpload}
             />
-          )}
 
-          {phase === "review" && shot && (
-            <div className="flex flex-col h-[100dvh] bg-black text-white relative">
-              <div className="absolute top-0 inset-x-0 p-4 flex items-center justify-between z-10">
-                <h2 className="font-semibold text-lg drop-shadow-md">Crop {surface.replace("-", " ")}</h2>
-                <Button variant="secondary" size="sm" onClick={() => { setShot(null); setCorners(null); setPhase("camera"); }}>
-                  Cancel
+            {/* Bottom Photo Strip Tray */}
+            {photos.length > 0 && (
+              <div className="space-y-2 rounded-xl border bg-card p-3 sm:p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Captured Photos ({photos.length}) — Click photo to remove
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-destructive hover:bg-destructive/10"
+                    onClick={() => setPhotos([])}
+                  >
+                    Clear All
+                  </Button>
+                </div>
+
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+                  {photos.map((src, i) => (
+                    <div
+                      key={i}
+                      className="group relative h-20 w-20 flex-shrink-0 cursor-pointer overflow-hidden rounded-lg border bg-black shadow-sm"
+                      onClick={() => handleRemovePhoto(i)}
+                      title="Click to remove"
+                    >
+                      <img src={src} alt={`Shot ${i + 1}`} className="h-full w-full object-cover transition-opacity group-hover:opacity-40" />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash2 className="h-5 w-5 text-destructive drop-shadow" />
+                      </div>
+                      <span className="absolute bottom-1 right-1 rounded bg-black/70 px-1 text-[10px] font-bold text-white">
+                        #{i + 1}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* PHASE 2: PHOTO SELECTION GALLERY */}
+        {/* ============================================================ */}
+        {phase === "select" && (
+          <div className="space-y-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="label-mono">Step 2 of 2 · Select Best Photos</p>
+                <h1 className="mt-1 text-2xl font-semibold sm:text-3xl font-serif">Select Photos for 3D Model</h1>
+                <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+                  Choose the clear photos of your walls and space. Only selected photos will be saved to your database.
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setPhase("camera")}>
+                  <Plus className="mr-1.5 h-4 w-4" /> Add More
                 </Button>
-              </div>
-
-              <div className="flex-1 relative pb-[100px] overflow-hidden">
-                <CornerSelection imageSrc={shot} onCornersChange={setCorners} />
-              </div>
-
-              <div className="absolute bottom-0 inset-x-0 p-6 flex justify-between bg-gradient-to-t from-black/80 to-transparent">
                 <Button
+                  size="sm"
                   variant="secondary"
-                  className="rounded-full"
-                  size="lg"
-                  disabled={isProcessing}
-                  onClick={() => { setShot(null); setCorners(null); setPhase("camera"); }}
+                  onClick={() => {
+                    if (selectedIndices.size === photos.length) setSelectedIndices(new Set());
+                    else setSelectedIndices(new Set(photos.map((_, i) => i)));
+                  }}
                 >
-                  Retake
-                </Button>
-                <Button
-                  className="rounded-full"
-                  size="lg"
-                  disabled={isProcessing || !corners}
-                  onClick={confirm}
-                >
-                  {isProcessing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  {isProcessing ? "Processing..." : "Confirm Wall"}
+                  {selectedIndices.size === photos.length ? "Deselect All" : "Select All"}
                 </Button>
               </div>
             </div>
-          )}
 
-          {phase === "review_crop" && croppedImageUrl && (
-            <div className="fixed inset-0 z-50 flex flex-col bg-black text-white">
-              <div className="absolute top-0 inset-x-0 p-4 flex items-center justify-between z-10 bg-gradient-to-b from-black/80 to-transparent">
-                <h2 className="font-semibold text-lg drop-shadow-md">Review Cropped Wall</h2>
-                <Button variant="secondary" size="sm" onClick={() => { setPhase("camera"); setCroppedImageUrl(null); setShot(null); setCorners(null); }}>
-                  Cancel
-                </Button>
+            {/* Gallery Grid */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 sm:gap-4">
+              {photos.map((src, idx) => {
+                const isSelected = selectedIndices.has(idx);
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => toggleSelectPhoto(idx)}
+                    className={`group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-xl border-2 transition-all ${
+                      isSelected
+                        ? "border-primary shadow-md ring-2 ring-primary/20 scale-[1.01]"
+                        : "border-border opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={src} alt={`Room photo ${idx + 1}`} className="h-full w-full object-cover" />
+
+                    {/* Selection Badge */}
+                    <div
+                      className={`absolute top-2.5 right-2.5 flex h-7 w-7 items-center justify-center rounded-full border shadow ${
+                        isSelected ? "bg-primary text-primary-foreground border-primary" : "bg-black/60 text-white/60 border-white/30"
+                      }`}
+                    >
+                      <Check className="h-4 w-4" />
+                    </div>
+
+                    <div className="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-0.5 text-xs font-medium text-white backdrop-blur">
+                      Photo #{idx + 1}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Sticky Action Footer */}
+            <div className="sticky bottom-4 rounded-2xl border bg-card/95 p-4 shadow-xl backdrop-blur flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="text-sm font-medium">
+                <span className="text-primary font-bold">{selectedIndices.size}</span> of {photos.length} photos selected
               </div>
 
-              <div className="flex-1 relative flex items-center justify-center p-4 pb-[100px] overflow-hidden">
-                <img 
-                  src={croppedImageUrl} 
-                  alt="Cropped wall result" 
-                  className="max-w-full max-h-full object-contain rounded-md"
-                />
-              </div>
-
-              <div className="absolute bottom-0 inset-x-0 p-6 flex justify-between bg-gradient-to-t from-black/80 to-transparent">
-                <Button
-                  variant="secondary"
-                  className="rounded-full"
-                  size="lg"
-                  onClick={() => { setPhase("camera"); setCroppedImageUrl(null); setShot(null); setCorners(null); }}
-                >
-                  Retake
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => setPhase("camera")}>
+                  <ArrowLeft className="mr-1.5 h-4 w-4" /> Back to Camera
                 </Button>
                 <Button
-                  className="rounded-full bg-success text-success-foreground hover:bg-success/90"
-                  size="lg"
-                  onClick={handleContinue}
+                  className="flex-1 sm:flex-none font-medium"
+                  disabled={selectedIndices.size === 0 || isSaving}
+                  onClick={handleSaveSelectedPhotos}
                 >
-                  Save & Continue
+                  {isSaving ? "Saving to Database…" : "Save & Choose Moodboard ➔"}
                 </Button>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t pt-4 sm:mt-10 sm:gap-3 sm:pt-5">
-          <Button
-            variant="ghost"
-            disabled={index === 0}
-            onClick={() => {
-              setIndex(Math.max(0, index - 1));
-              setPhase("example");
-              setShot(null);
-            }}
-          >
-            ← Previous wall
-          </Button>
-          <Button variant="ghost" onClick={() => navigate({ to: "/studio" })}>
-            Skip to 3D studio →
-          </Button>
-        </div>
+        {/* ============================================================ */}
+        {/* PHASE 3: MOODBOARD SELECTION & DIRECT VR REDIRECT */}
+        {/* ============================================================ */}
+        {phase === "moodboard" && (
+          <div className="space-y-6">
+            <div>
+              <p className="label-mono">Final Step · Style & Atmosphere</p>
+              <h1 className="mt-1 text-2xl font-semibold sm:text-3xl font-serif">Choose Your Moodboard</h1>
+              <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+                Pick your preferred interior design aesthetic. Selecting a moodboard will save it and generate your 360° redesign.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {MOODBOARDS.map((mb) => {
+                const isSelected = selectedMoodboard === mb.id;
+                return (
+                  <div
+                    key={mb.id}
+                    onClick={() => !isSaving && handleSelectMoodboard(mb)}
+                    className={`group relative flex flex-col overflow-hidden rounded-2xl border-2 bg-card transition-all cursor-pointer hover:shadow-xl ${
+                      isSelected ? "border-primary ring-4 ring-primary/20 scale-[1.02]" : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+                      <img
+                        src={mb.image}
+                        alt={mb.name}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      {isSelected && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-primary/20 backdrop-blur-[2px]">
+                          <div className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground shadow">
+                            <CheckCircle2 className="h-4 w-4" /> Selected
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-1 flex-col p-4 sm:p-5">
+                      <h3 className="text-base font-semibold font-serif group-hover:text-primary transition-colors">
+                        {mb.name}
+                      </h3>
+                      <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed flex-1">
+                        {mb.subtitle}
+                      </p>
+
+                      <div className="mt-4 flex flex-wrap gap-1.5">
+                        {mb.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-md bg-secondary/80 px-2 py-0.5 text-[10px] font-medium text-secondary-foreground"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      <Button
+                        className="mt-4 w-full"
+                        variant={isSelected ? "default" : "outline"}
+                        disabled={isSaving}
+                      >
+                        <Sparkles className="mr-1.5 h-4 w-4" /> Apply & Experience in VR
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

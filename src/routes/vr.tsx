@@ -69,6 +69,7 @@ const afterPanelContent = (panorama: PanoramaRecord) => {
 function VrPage() {
   const [panoramas, setPanoramas] = useState<PanoramaRecord[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [viewMode, setViewMode] = useState<"after" | "split" | "before">("after");
   const [uploading, setUploading] = useState(false);
   const [newImageMessage, setNewImageMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -203,6 +204,42 @@ function VrPage() {
           <span>Roomcast Studio</span>
         </Link>
         <div className="topbar-actions">
+          <div className="view-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--color-secondary)', padding: '4px', borderRadius: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setViewMode("after")}
+              style={{
+                border: 'none',
+                borderRadius: '6px',
+                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                background: viewMode === "after" ? 'var(--color-primary)' : 'transparent',
+                color: viewMode === "after" ? 'var(--color-primary-foreground)' : 'var(--color-muted-foreground)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              ✨ After (AI Redesign)
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("split")}
+              style={{
+                border: 'none',
+                borderRadius: '6px',
+                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                background: viewMode === "split" ? 'var(--color-primary)' : 'transparent',
+                color: viewMode === "split" ? 'var(--color-primary-foreground)' : 'var(--color-muted-foreground)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              Split View
+            </button>
+          </div>
           <button
             type="button"
             className="upload-btn"
@@ -251,61 +288,65 @@ function VrPage() {
 
       <main className="viewer-area">
         {current ? (
-          <div className="viewer-panels">
-            <div className="viewer-wrapper">
-              <div className="panel-label">BEFORE — Original Panorama</div>
-              <PanoramaViewer
-                imageUrl={current.filePath}
-                vrButtonId="vr-before"
-                alternateImageUrl={
-                  designAvailable && current.designedFilePath
-                    ? current.designedFilePath
-                    : null
-                }
-                toggleLabel="AFTER"
-              />
-              <div className="panel-top-controls">
-                <button
-                  type="button"
-                  onClick={(event) =>
-                    openFullscreen(event.currentTarget.closest(".viewer-wrapper") as HTMLElement)
-                  }
-                >
-                  ⛶ Fullscreen
-                </button>
-              </div>
-            </div>
-
-            <div className="viewer-wrapper">
-              <div className="panel-label">AFTER — AI Designed Panorama</div>
-              {designAvailable && current.designedFilePath ? (
+          <div className={`viewer-panels ${viewMode === "after" ? "single-view-after" : viewMode === "before" ? "single-view-before" : "split-view"}`} style={{ display: 'flex', gap: '20px', width: '100%' }}>
+            {(viewMode === "before" || viewMode === "split") && (
+              <div className="viewer-wrapper" style={{ flex: 1, minWidth: 0 }}>
+                <div className="panel-label">BEFORE — Original Panorama</div>
                 <PanoramaViewer
-                  imageUrl={current.designedFilePath}
-                  vrButtonId="vr-after"
-                  alternateImageUrl={current.filePath}
-                  toggleLabel="BEFORE"
-                />
-              ) : (
-                <div className="after-placeholder">
-                  <div className="spinner" />
-                  <strong>{afterContent?.title ?? "Waiting for redesign…"}</strong>
-                  <p>{afterContent?.body ?? ""}</p>
-                  <p>
-                    You can still <em>Enter VR</em> with the original panorama.
-                  </p>
-                </div>
-              )}
-              <div className="panel-top-controls">
-                <button
-                  type="button"
-                  onClick={(event) =>
-                    openFullscreen(event.currentTarget.closest(".viewer-wrapper") as HTMLElement)
+                  imageUrl={current.filePath}
+                  vrButtonId="vr-before"
+                  alternateImageUrl={
+                    designAvailable && current.designedFilePath
+                      ? current.designedFilePath
+                      : null
                   }
-                >
-                  ⛶ Fullscreen
-                </button>
+                  toggleLabel="AFTER"
+                />
+                <div className="panel-top-controls">
+                  <button
+                    type="button"
+                    onClick={(event) =>
+                      openFullscreen(event.currentTarget.closest(".viewer-wrapper") as HTMLElement)
+                    }
+                  >
+                    ⛶ Fullscreen
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {(viewMode === "after" || viewMode === "split") && (
+              <div className="viewer-wrapper" style={{ flex: 1, minWidth: 0 }}>
+                <div className="panel-label">AFTER — AI Designed Panorama</div>
+                {designAvailable && current.designedFilePath ? (
+                  <PanoramaViewer
+                    imageUrl={current.designedFilePath}
+                    vrButtonId="vr-after"
+                    alternateImageUrl={current.filePath}
+                    toggleLabel="BEFORE"
+                  />
+                ) : (
+                  <div className="after-placeholder">
+                    <div className="spinner" />
+                    <strong>{afterContent?.title ?? "Waiting for redesign…"}</strong>
+                    <p>{afterContent?.body ?? ""}</p>
+                    <p>
+                      You can still <em>Enter VR</em> with the original panorama.
+                    </p>
+                  </div>
+                )}
+                <div className="panel-top-controls">
+                  <button
+                    type="button"
+                    onClick={(event) =>
+                      openFullscreen(event.currentTarget.closest(".viewer-wrapper") as HTMLElement)
+                    }
+                  >
+                    ⛶ Fullscreen
+                  </button>
+                </div>
+              </div>
+            )}
 
             {panoramas.length > 1 && (
               <>
