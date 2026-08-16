@@ -432,11 +432,19 @@ async function triggerN8nWorkflow(panorama: {
   const visionBoardPath = await resolveVisionBoardPath(panorama.project_id);
 
   const payload = {
+<<<<<<< HEAD
   panoramaId: panorama.id,
   projectId: panorama.project_id,
   panoramaPath,
   visionBoardPath,
 };
+=======
+    panoramaId: panorama.id,
+    projectId: panorama.project_id,
+    panoramaPath,
+    visionBoardPath,
+  };
+>>>>>>> b6e53544b30947216f94c7c1af579173fe505ead
 
   console.log("TRIGGERING N8N WORKFLOW", payload);
 
@@ -543,6 +551,100 @@ export type PanoramaRecord = {
   createdAt: string;
 };
 
+// n8n saves the AI-designed panorama into `panoramas-designed/`. The file may
+// live under the project-scoped folder `projects/{projectId}/panoramas-designed/`
+// or at the bucket-root `panoramas-designed/`. We match by the Panorama ID so
+// every panorama resolves its After image automatically.
+
+const PANORAMA_DESIGNED_FOLDER = "panoramas-designed";
+
+const ORIGINAL_PANORAMA_NAME_PATTERN = /panorama-([^.]+)\.(png|jpe?g|webp)$/i;
+
+function extractPanoramaIdFromFilePath(filePath: string): string | null {
+  const fileName = filePath.split("/").pop() ?? filePath;
+
+  return fileName.match(ORIGINAL_PANORAMA_NAME_PATTERN)?.[1] ?? null;
+}
+
+const designedFolderCache = new Map<string, string[]>();
+
+async function listDesignedFolder(folderPath: string): Promise<string[]> {
+  const cached = designedFolderCache.get(folderPath);
+
+  if (cached) {
+    return cached;
+  }
+
+  const { supabase, SUPABASE_BUCKET } = await import("./supabase");
+
+  try {
+    const { data: files, error } = await supabase.storage
+      .from(SUPABASE_BUCKET)
+      .list(folderPath, { limit: 1000 });
+
+    if (error) {
+      console.error(`DESIGNED PANORAMA STORAGE LIST ERROR (${folderPath})`, error);
+
+      return [];
+    }
+
+    const names = (files ?? []).map((file) => file.name);
+
+    designedFolderCache.set(folderPath, names);
+
+    return names;
+  } catch (error) {
+    console.error(`DESIGNED PANORAMA STORAGE LIST ERROR (${folderPath})`, error);
+
+    return [];
+  }
+}
+
+function matchDesignedFileName(panoramaId: string, fileNames: string[]): string | null {
+  for (const name of fileNames) {
+    if (name === `test-panorama-${panoramaId}.png`) {
+      return name;
+    }
+
+    if (name.startsWith(`${panoramaId}-`)) {
+      return name;
+    }
+  }
+
+  return null;
+}
+
+async function resolveDesignedFilePath(row: {
+  id: string;
+  projectId: string;
+  filePath: string | null;
+}): Promise<string | null> {
+  const { supabase, SUPABASE_BUCKET } = await import("./supabase");
+
+  const idFromFilePath = row.filePath ? extractPanoramaIdFromFilePath(row.filePath) : null;
+
+  const panoramaId = idFromFilePath ?? row.id;
+
+  const folders = [
+    row.projectId ? `projects/${row.projectId}/${PANORAMA_DESIGNED_FOLDER}` : null,
+    PANORAMA_DESIGNED_FOLDER,
+  ].filter((folder): folder is string => Boolean(folder));
+
+  for (const folder of folders) {
+    const fileNames = await listDesignedFolder(folder);
+
+    const match = matchDesignedFileName(panoramaId, fileNames);
+
+    if (match) {
+      const { data } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(`${folder}/${match}`);
+
+      return data.publicUrl;
+    }
+  }
+
+  return null;
+}
+
 export async function handleListPanoramas(): Promise<Response> {
   const { supabase } = await import("./supabase");
 
@@ -554,18 +656,40 @@ export async function handleListPanoramas(): Promise<Response> {
 
     if (error) {
       console.error("PANORAMA LIST ERROR", error);
-
       throw error;
     }
 
-    const panoramas = (data ?? []).map((row): PanoramaRecord => ({
-      id: row.id,
-      projectId: row.project_id,
-      filePath: row.file_path,
-      designedFilePath: row.designed_file_path,
-      status: row.status,
-      createdAt: row.created_at,
-    }));
+    // Also fetch design_jobs to read output_image_url if present
+    const { data: designJobs } = await supabase
+      .from("design_jobs")
+      .select("panorama_id, output_image_url, status");
+
+    const djMap = new Map((designJobs ?? []).map((dj) => [dj.panorama_id, dj]));
+
+    const panoramas = await Promise.all(
+      (data ?? []).map(async (row): Promise<PanoramaRecord> => {
+        const dj = djMap.get(row.id);
+        const designedFromStorage = await resolveDesignedFilePath({
+          id: row.id,
+          projectId: row.project_id,
+          filePath: row.file_path,
+        });
+        const designedFilePath =
+          designedFromStorage || row.designed_file_path || dj?.output_image_url || null;
+        const isCompleted =
+          Boolean(designedFilePath) || row.status === "completed" || dj?.status === "completed";
+        const status = isCompleted && designedFilePath ? "completed" : row.status;
+
+        return {
+          id: row.id,
+          projectId: row.project_id,
+          filePath: row.file_path,
+          designedFilePath,
+          status,
+          createdAt: row.created_at,
+        };
+      }),
+    );
 
     return Response.json({
       success: true,
@@ -874,11 +998,25 @@ export async function handleReceiveGeneratedPanorama(request: Request): Promise<
       const projectIdValue = formData.get("projectId") ?? formData.get("project_id");
       const generatedFile = formData.get("generatedPanorama") ?? formData.get("image") ?? formData.get("file");
 
-      if (typeof panoramaIdValue !== "string" || !panoramaIdValue) {
-        return Response.json({ success: false, message: "Missing panoramaId" }, { status: 400 });
+      if (typeof panoramaIdValue === "string" && panoramaIdValue) {
+        panoramaId = panoramaIdValue;
+      } else {
+        const { data: latestPano } = await supabase
+          .from("panoramas")
+          .select("id, project_id")
+          .in("status", ["processing", "pending"])
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (latestPano) {
+          panoramaId = latestPano.id;
+        }
       }
 
-      panoramaId = panoramaIdValue;
+      if (!panoramaId) {
+        return Response.json({ success: false, message: "Missing panoramaId and no active panorama found" }, { status: 400 });
+      }
+
       projectId = typeof projectIdValue === "string" ? projectIdValue : "";
 
       // Step 1 — Verify panorama exists.
@@ -966,7 +1104,21 @@ export async function handleReceiveGeneratedPanorama(request: Request): Promise<
       projectId = body.projectId ?? body.project_id ?? "";
 
       if (!panoramaId) {
-        return Response.json({ success: false, message: "Missing panoramaId" }, { status: 400 });
+        // Auto-fallback to the most recent processing or pending panorama
+        const { data: latestPano } = await supabase
+          .from("panoramas")
+          .select("id, project_id")
+          .in("status", ["processing", "pending"])
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (latestPano) {
+          panoramaId = latestPano.id;
+          if (!projectId) projectId = latestPano.project_id;
+        } else {
+          return Response.json({ success: false, message: "Missing panoramaId and no active panorama found" }, { status: 400 });
+        }
       }
 
       if (!designedFilePath) {
