@@ -7,7 +7,7 @@ export const Route = createFileRoute("/api/health")({
         Response.json({
           ok: true,
           ready: true,
-          processor: "sharp",
+          processor: "real-esrgan",
           aiModel: false,
           gpuRequired: false,
         }),

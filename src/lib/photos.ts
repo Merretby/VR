@@ -219,9 +219,25 @@ export const savePanorama = createServerFn({
       }
 
       // Convert panorama
-      const buffer = base64ToBuffer(image);
+      const originalBuffer = base64ToBuffer(image);
 
-      const mimeType = getMimeType(image);
+      console.log("ORIGINAL PANORAMA RECEIVED", {
+        size: originalBuffer.length,
+      });
+
+      const { enhancePanoramaBuffer } = await import("./ai-backend");
+
+      console.log("STARTING REAL-ESRGAN...");
+
+      const enhancedBuffer = await enhancePanoramaBuffer(originalBuffer);
+
+      console.log("REAL-ESRGAN FINISHED", {
+        originalSize: originalBuffer.length,
+        enhancedSize: enhancedBuffer.length,
+      });
+
+      // Real-ESRGAN output is always PNG
+      const mimeType = "image/png";
 
       const extension = getExtension(mimeType);
 
@@ -233,13 +249,13 @@ export const savePanorama = createServerFn({
         bucket: SUPABASE_BUCKET,
         storagePath,
         mimeType,
-        size: buffer.length,
+        size: enhancedBuffer.length,
       });
 
       // Upload panorama
       const { data: storageData, error: storageError } = await supabase.storage
         .from(SUPABASE_BUCKET)
-        .upload(storagePath, buffer, {
+        .upload(storagePath, enhancedBuffer, {
           contentType: mimeType,
           upsert: false,
           cacheControl: "3600",
@@ -416,9 +432,11 @@ async function triggerN8nWorkflow(panorama: {
   const visionBoardPath = await resolveVisionBoardPath(panorama.project_id);
 
   const payload = {
-    panoramaPath,
-    visionBoardPath,
-  };
+  panoramaId: panorama.id,
+  projectId: panorama.project_id,
+  panoramaPath,
+  visionBoardPath,
+};
 
   console.log("TRIGGERING N8N WORKFLOW", payload);
 
@@ -777,18 +795,14 @@ export async function handleReceiveDesignedPanorama(request: Request): Promise<R
     }
 
     // Also update design_jobs table output_image_url
-    try {
-      await supabase
-        .from("design_jobs")
-        .update({
-          output_image_url: designedFilePath,
-          status: "completed",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("panorama_id", panoramaId);
-    } catch (djErr) {
-      console.warn("design_jobs update error:", djErr);
-    }
+    const { error: djErr } = await supabase
+      .from("design_jobs")
+      .update({
+        output_image_url: designedFilePath,
+        status: "completed",
+      })
+      .eq("panorama_id", panoramaId);
+    if (djErr) console.warn("design_jobs update error:", djErr);
 
     console.log("N8N DESIGN RECEIVED", panorama);
 
@@ -977,18 +991,14 @@ export async function handleReceiveGeneratedPanorama(request: Request): Promise<
     }
 
     // Also update design_jobs table output_image_url
-    try {
-      await supabase
-        .from("design_jobs")
-        .update({
-          output_image_url: designedFilePath,
-          status: "completed",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("panorama_id", panoramaId);
-    } catch (djErr) {
-      console.warn("design_jobs update error:", djErr);
-    }
+    const { error: djErr } = await supabase
+      .from("design_jobs")
+      .update({
+        output_image_url: designedFilePath,
+        status: "completed",
+      })
+      .eq("panorama_id", panoramaId);
+    if (djErr) console.warn("design_jobs update error:", djErr);
 
     console.log("GENERATED PANORAMA ACCEPTED", { panoramaId, output_image_url: designedFilePath });
 

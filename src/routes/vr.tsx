@@ -254,7 +254,16 @@ function VrPage() {
           <div className="viewer-panels">
             <div className="viewer-wrapper">
               <div className="panel-label">BEFORE — Original Panorama</div>
-              <PanoramaViewer imageUrl={current.filePath} vrButtonId="vr-before" />
+              <PanoramaViewer
+                imageUrl={current.filePath}
+                vrButtonId="vr-before"
+                alternateImageUrl={
+                  designAvailable && current.designedFilePath
+                    ? current.designedFilePath
+                    : null
+                }
+                toggleLabel="AFTER"
+              />
               <div className="panel-top-controls">
                 <button
                   type="button"
@@ -270,7 +279,12 @@ function VrPage() {
             <div className="viewer-wrapper">
               <div className="panel-label">AFTER — AI Designed Panorama</div>
               {designAvailable && current.designedFilePath ? (
-                <PanoramaViewer imageUrl={current.designedFilePath} vrButtonId="vr-after" />
+                <PanoramaViewer
+                  imageUrl={current.designedFilePath}
+                  vrButtonId="vr-after"
+                  alternateImageUrl={current.filePath}
+                  toggleLabel="BEFORE"
+                />
               ) : (
                 <div className="after-placeholder">
                   <div className="spinner" />
