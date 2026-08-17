@@ -10,6 +10,11 @@ export const Route = createFileRoute("/vr")({
   component: VrPage,
 });
 
+// Public n8n production webhook.
+// Example in .env.local:
+// VITE_N8N_WEBHOOK_URL=https://YOUR-N8N-TUNNEL.trycloudflare.com/webhook/panorama-redesign
+const N8N_WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL as string | undefined;
+
 type PanoramaRecord = {
   id: string;
   projectId: string;
@@ -72,6 +77,8 @@ function VrPage() {
   const [viewMode, setViewMode] = useState<"after" | "split" | "before">("after");
   const [uploading, setUploading] = useState(false);
   const [newImageMessage, setNewImageMessage] = useState("");
+  const [isGenerating360, setIsGenerating360] = useState(false);
+  const [generatedPanoramaUrl, setGeneratedPanoramaUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const lastNewestIdRef = useRef<string | null>(null);
 
@@ -149,8 +156,77 @@ function VrPage() {
     }
   };
 
+  const handleGenerate360Direct = async () => {
+    if (!N8N_WEBHOOK_URL) {
+      alert(
+        "Missing VITE_N8N_WEBHOOK_URL. Add the public n8n webhook URL to .env.local and restart the frontend.",
+      );
+      return;
+    }
+
+    try {
+      setIsGenerating360(true);
+      setNewImageMessage("Generating 360 panorama...");
+
+      const payload = {
+        projectId: "project_4",
+        panoramaId: `pano_${Date.now()}`,
+        projectName: "VR Direct Test",
+        photos: [
+          { wallKey: "front", url: "http://127.0.0.1:8090/front.png" },
+          { wallKey: "right", url: "http://127.0.0.1:8090/right.png" },
+          { wallKey: "back", url: "http://127.0.0.1:8090/back.png" },
+          { wallKey: "left", url: "http://127.0.0.1:8090/left.png" },
+        ],
+        visionBoardPath: "http://127.0.0.1:8090/vision_board.jpg",
+      };
+
+      const response = await fetch(N8N_WEBHOOK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || `Generation failed (${response.status})`);
+      }
+
+      const blob = await response.blob();
+
+      if (!blob.type.startsWith("image/")) {
+        const message = await blob.text();
+        throw new Error(`n8n did not return an image: ${message}`);
+      }
+
+      const objectUrl = URL.createObjectURL(blob);
+
+      setGeneratedPanoramaUrl((previousUrl) => {
+        if (previousUrl) URL.revokeObjectURL(previousUrl);
+        return objectUrl;
+      });
+
+      setViewMode("after");
+      setNewImageMessage("New 360 panorama generated ✓");
+      setTimeout(() => setNewImageMessage(""), 5000);
+    } catch (error) {
+      console.error("Direct 360 generation error:", error);
+      setNewImageMessage("");
+      alert(
+        error instanceof Error
+          ? `360 generation failed: ${error.message}`
+          : "360 generation failed. Check n8n / ai360 / ComfyUI.",
+      );
+    } finally {
+      setIsGenerating360(false);
+    }
+  };
+
   const current = panoramas.length ? panoramas[selectedIndex] : undefined;
-  const designAvailable = current ? isDesignAvailable(current) : false;
+  const storedDesignAvailable = current ? isDesignAvailable(current) : false;
+  const designAvailable = Boolean(generatedPanoramaUrl) || storedDesignAvailable;
   const afterContent = current ? afterPanelContent(current) : undefined;
 
   const previousPanorama = () => {
@@ -243,6 +319,15 @@ function VrPage() {
           <button
             type="button"
             className="upload-btn"
+            disabled={isGenerating360}
+            onClick={handleGenerate360Direct}
+          >
+            {isGenerating360 ? "Generating 360..." : "✨ Generate 360 Direct"}
+          </button>
+
+          <button
+            type="button"
+            className="upload-btn"
             disabled={uploading}
             onClick={() => fileInputRef.current?.click()}
           >
@@ -260,6 +345,7 @@ function VrPage() {
       </header>
 
       {uploading && <div className="processing">Saving panorama...</div>}
+      {isGenerating360 && <div className="processing">AI is generating your 360 panorama...</div>}
       {newImageMessage && <div className="processing">{newImageMessage}</div>}
 
       <div className="thumbnails">
@@ -296,9 +382,10 @@ function VrPage() {
                   imageUrl={current.filePath}
                   vrButtonId="vr-before"
                   alternateImageUrl={
-                    designAvailable && current.designedFilePath
+                    generatedPanoramaUrl ??
+                    (storedDesignAvailable && current.designedFilePath
                       ? current.designedFilePath
-                      : null
+                      : null)
                   }
                   toggleLabel="AFTER"
                 />
@@ -318,9 +405,9 @@ function VrPage() {
             {(viewMode === "after" || viewMode === "split") && (
               <div className="viewer-wrapper" style={{ flex: 1, minWidth: 0 }}>
                 <div className="panel-label">AFTER — AI Designed Panorama</div>
-                {designAvailable && current.designedFilePath ? (
+                {generatedPanoramaUrl || (storedDesignAvailable && current.designedFilePath) ? (
                   <PanoramaViewer
-                    imageUrl={current.designedFilePath}
+                    imageUrl={generatedPanoramaUrl ?? current.designedFilePath!}
                     vrButtonId="vr-after"
                     alternateImageUrl={current.filePath}
                     toggleLabel="BEFORE"
@@ -363,21 +450,37 @@ function VrPage() {
               Drag to look around • Mouse wheel to zoom • ENTER VR for headset
             </div>
           </div>
+        ) : generatedPanoramaUrl ? (
+          <div className="viewer-wrapper" style={{ width: "100%", minWidth: 0 }}>
+            <div className="panel-label">AI GENERATED 360 PANORAMA</div>
+            <PanoramaViewer
+              imageUrl={generatedPanoramaUrl}
+              vrButtonId="vr-generated-direct"
+              alternateImageUrl={null}
+              toggleLabel="BEFORE"
+            />
+          </div>
         ) : (
           <div className="empty-viewer">
             <h2>Waiting for panorama...</h2>
-            <p>Upload a panorama or wait for a new 360 capture.</p>
+            <p>Upload a panorama or generate a new 360 test.</p>
           </div>
         )}
       </main>
 
-      {current && (
+      {(current || generatedPanoramaUrl) && (
         <div className="bottom-info">
           <strong>
-            Panorama {selectedIndex + 1} / {panoramas.length}
+            {current
+              ? `Panorama ${selectedIndex + 1} / ${panoramas.length}`
+              : "Direct AI Panorama"}
           </strong>
           <span className={designAvailable ? "ai-status" : undefined}>
-            {current ? designStatusLabel(current) : ""}
+            {generatedPanoramaUrl
+              ? "✓ Direct AI result ready"
+              : current
+                ? designStatusLabel(current)
+                : ""}
           </span>
         </div>
       )}

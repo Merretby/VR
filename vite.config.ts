@@ -11,7 +11,7 @@ export default defineConfig({
   vite: {
     server: {
       allowedHosts: [
-        "termination-biblical-left-difficulties.trycloudflare.com",
+        "meanwhile-monitoring-tool-creature.trycloudflare.com",
       ],
     },
   },

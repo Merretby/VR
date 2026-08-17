@@ -1428,10 +1428,132 @@ export const saveVisionBoard = createServerFn({
 
       console.log('VISION BOARD SAVED', { projectId, visionBoardPath });
 
-      return {
-        success: true,
-        visionBoardPath,
-      };
+// =====================================================
+// TRIGGER N8N AFTER PHOTOS + VISION BOARD ARE READY
+// =====================================================
+
+let n8nTriggered = false;
+
+try {
+  // Get all photos saved for this project
+  const { data: projectPhotos, error: photosError } = await supabase
+    .from('photos')
+    .select('wall_key, file_path')
+    .eq('project_id', projectId);
+
+  if (photosError) {
+    throw photosError;
+  }
+
+  if (!projectPhotos || projectPhotos.length < 2) {
+    throw new Error(
+      `Not enough project photos. Found ${projectPhotos?.length ?? 0}`
+    );
+  }
+
+  // Sort room-photo-1, room-photo-2, room-photo-3, room-photo-4...
+  const sortedPhotos = [...projectPhotos].sort((a, b) => {
+    const aNumber = Number(
+      String(a.wall_key ?? '').match(/(\d+)$/)?.[1] ?? 999
+    );
+
+    const bNumber = Number(
+      String(b.wall_key ?? '').match(/(\d+)$/)?.[1] ?? 999
+    );
+
+    return aNumber - bNumber;
+  });
+
+  // Current 4-photo test:
+  // 1 = front
+  // 2 = right
+  // 3 = back
+  // 4 = left
+  const wallNames = [
+    'front',
+    'right',
+    'back',
+    'left',
+    'front-right',
+    'back-right',
+    'back-left',
+    'front-left',
+  ];
+
+  const photos = sortedPhotos.map((photo, index) => ({
+    wallKey: wallNames[index] ?? `photo-${index + 1}`,
+    url: photo.file_path,
+  }));
+
+  const webhookUrl = process.env['N8N_PANORAMA_WEBHOOK_URL'];
+
+  if (!webhookUrl) {
+    throw new Error('N8N_PANORAMA_WEBHOOK_URL is not configured');
+  }
+
+  const panoramaId = `pano-${Date.now()}-${crypto.randomUUID().slice(0, 6)}`;
+
+  const payload = {
+    projectId,
+    panoramaId,
+    projectName: projectId,
+    photos,
+    visionBoardPath,
+  };
+
+  console.log('TRIGGERING N8N MULTI PHOTO WORKFLOW', {
+    webhookUrl,
+    projectId,
+    panoramaId,
+    photoCount: photos.length,
+    photos,
+    visionBoardPath,
+  });
+
+  const controller = new AbortController();
+
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, 15000);
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    const responseText = await response.text();
+
+    console.log('N8N WEBHOOK RESPONSE', {
+      status: response.status,
+      body: responseText,
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `n8n returned ${response.status}: ${responseText}`
+      );
+    }
+
+    n8nTriggered = true;
+  } finally {
+    clearTimeout(timeout);
+  }
+} catch (n8nError) {
+  // IMPORTANT:
+  // Do not block the website if n8n fails.
+  console.error('N8N TRIGGER ERROR', n8nError);
+}
+
+return {
+  success: true,
+  visionBoardPath,
+  n8nTriggered,
+};
     } catch (error) {
       console.error('Backend vision board save error:', error);
       throw error;
