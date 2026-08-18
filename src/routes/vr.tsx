@@ -85,6 +85,7 @@ function VrPage() {
   const [generatedPanoramaUrl, setGeneratedPanoramaUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const lastNewestIdRef = useRef<string | null>(null);
+  const hasSetInitialPanoRef = useRef(false);
 
   const loadPanoramas = async (autoOpenNew = false) => {
     try {
@@ -95,10 +96,11 @@ function VrPage() {
       const newest = loaded.length ? loaded[0] : undefined;
 
       const targetPanoId = search.pano;
-      if (targetPanoId) {
+      if (targetPanoId && !hasSetInitialPanoRef.current) {
         const foundIdx = loaded.findIndex((p) => p.id === targetPanoId);
         if (foundIdx !== -1) {
           setSelectedIndex(foundIdx);
+          hasSetInitialPanoRef.current = true;
         }
       }
 

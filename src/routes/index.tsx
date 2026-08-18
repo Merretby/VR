@@ -246,7 +246,7 @@ const SHOWCASE_SPACES: ShowcaseSpace[] = [
     afterImg: japandiAfter,
     styleName: "Japandi Minimalist",
     tags: ["Oak Wood", "Linen", "Limewash"],
-    dimensions: "4.5m ° 4.0m",
+    dimensions: "6.2m ° 4.8m",
   },
   {
    id: "contemporary-studio",
@@ -258,7 +258,7 @@ const SHOWCASE_SPACES: ShowcaseSpace[] = [
     afterImg: afterContemporary,
     styleName: "Contemporary Chic",
     tags: ["Travertine", "Matte Brass", "Sculptural"],
-    dimensions: "5.5m ° 4.2m",
+    dimensions: "6.2m ° 4.8m",
   },
 ];
 function LandingPage() {
