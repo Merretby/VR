@@ -38,16 +38,16 @@ import moodboard2 from "@/assets/moodboards/moodbord-2.jpg";
 export const Route = createFileRoute('/')({
   head: () => (+{
     meta: [
-      { title: "Roomcast Studio Ã¢ÂÂ AI 360ÃÂ° Room Redesign & VR Experience" },
+      { title: "Roomcast Studio AI 360° Room Redesign & VR Experience" },
       {
         name: "description",
         content:
-          "Capture your room in photos, apply luxury moodboard aesthetics, and explore your AI-redesigned room in interactive 360ÃÂ° and VR.",
+          "Capture your room in photos, apply luxury moodboard aesthetics, and explore your AI-redesigned room in interactive 360° and VR.",
       },
-      { property: "og:title", content: "Roomcast Studio Ã¢ÂÂ 360Ã°Â¨ AI Interior Redesign" },
+      { property: "og:title", content: "Roomcast Studio 360° AI Interior Redesign" },
       {
         property: "og:description",
-        content: "From real-room photos to photoreal 360ÃÂ° VR transformations styled with curated moodboards.",
+        content: "From real-room photos to photoreal 360° VR transformations styled with curated moodboards.",
       },
     ],
   }),
@@ -92,7 +92,7 @@ const MOODBOARD_DETAILS: MoodboardDetail[] = [
     styleName: "Contemporary Luxury & Warm Elegance",
     subtitle: "Timeless refinement, noble materials and a warm, luminous ambiance.",
     philosophy:
-      "A prestigious aesthetic that elevates volumes through the warm contrast of dark walnut, the nobility of veined marble and the softness of curved bouclÃÂ© fabric seating.",
+      "A prestigious aesthetic that elevates volumes through the warm contrast of dark walnut, the nobility of veined marble and the softness of curved boucl fabric seating.",
     img: moodboardDefault,
     components: [
       {
@@ -105,15 +105,15 @@ const MOODBOARD_DETAILS: MoodboardDetail[] = [
       },
       {
         category: "Furniture & Textiles",
-        items: ["Organic curved bouclÃÂ© ecru sofas", "Terracotta velvet accent armchairs", "Textured Merino wool rugs"],
+        items: ["Organic curved boucl ecru sofas", "Terracotta velvet accent armchairs", "Textured Merino wool rugs"],
       },
       {
-        category: "Metallic Finishes & DÃÂ©cor",
+        category: "Metallic Finishes & Décor",
         items: ["Brushed matte brass & warm bronze", "Sculptural ceramic vases", "Bronze-tinted mirrors"],
       },
       {
         category: "Forms",
-        items: ["Contrast between straight architectural lines and furniture with organic shapes", "Curved bouclÃÂ© seating against linear walnut paneling", "Rectilinear marble surfaces paired with sculptural rounded objects"],
+        items: ["Contrast between straight architectural lines and furniture with organic shapes", "Curved boucl seating against linear walnut paneling", "Rectilinear marble surfaces paired with sculptural rounded objects"],
       },
     ],
     palette: [
@@ -195,7 +195,7 @@ const MOODBOARD_DETAILS: MoodboardDetail[] = [
       },
       {
         category: "Editorial Textiles",
-        items: ["Deep forest green silk velvet", "Textured ivory bouclÃÂ© fabric", "Cognac saddle leather with contrast stitching"],
+        items: ["Deep forest green silk velvet", "Textured ivory boucl fabric", "Cognac saddle leather with contrast stitching"],
       },
       {
         category: "Art & Ironwork",
@@ -229,12 +229,12 @@ const SHOWCASE_SPACES: ShowcaseSpace[] = [
     panoramaId: "panorama_luxury_default",
     category: "luxury",
     title: "Walnut & Marble Grand Living Room",
-    subtitle: "Warm amber coving lights, bookmatched marble fireplace, and curved bouclÃÂ© seating.",
+    subtitle: "Warm amber coving lights, bookmatched marble fireplace, and curved boucl seating.",
     beforeImg: luxuryBefore,
     afterImg: luxuryAfter,
     styleName: "Modern Luxury",
     tags: ["Marble", "Walnut Panel", "Ambient Lighting"],
-    dimensions: "6.2m ÃÂ 4.8m",
+    dimensions: "6.2m ° 4.8m",
   },
   {
     id: "japandi-master",
@@ -246,7 +246,7 @@ const SHOWCASE_SPACES: ShowcaseSpace[] = [
     afterImg: japandiAfter,
     styleName: "Japandi Minimalist",
     tags: ["Oak Wood", "Linen", "Limewash"],
-    dimensions: "4.5m Ã0 4.0m",
+    dimensions: "4.5m ° 4.0m",
   },
   {
    id: "contemporary-studio",
@@ -258,7 +258,7 @@ const SHOWCASE_SPACES: ShowcaseSpace[] = [
     afterImg: afterContemporary,
     styleName: "Contemporary Chic",
     tags: ["Travertine", "Matte Brass", "Sculptural"],
-    dimensions: "5.5m Ã0 4.2m",
+    dimensions: "5.5m ° 4.2m",
   },
 ];
 function LandingPage() {
@@ -291,7 +291,7 @@ function LandingPage() {
       await navigate({ to: "/capture" });
     } catch (error) {
       console.error("Could not start room capture:", error);
-      toast.error("Starting capture sessionÃ¢ÂÂ¦");
+      toast.error("Starting capture session¦");
       await navigate({ to: "/capture" });
     }
   };
@@ -310,7 +310,7 @@ function LandingPage() {
         await savePanorama({
           data: { projectId, image: String(reader.result) },
         });
-        toast.success("360ÃÂ° Panorama uploaded! Entering VRÃ¢ÂÂ");
+        toast.success("360° Panorama uploaded! Entering VR°");
         navigate({ to: "/vr" });
       } catch (error) {
         console.error("Panorama upload error:", error);
@@ -336,20 +336,20 @@ function LandingPage() {
             <div className="flex justify-center">
               <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card/80 px-4 py-1.5 text-xs font-medium text-muted-foreground shadow-xs backdrop-blur-md">
                 <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse" />
-                <span>Next-Gen Spatial 360ÃÂ° & VR Room Redesign</span>
+                <span>Next-Gen Spatial 360° & VR Room Redesign</span>
               </div>
             </div>
             <div className="mt-6 text-center max-w-4xl mx-auto">
               <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight leading-[1.08]">
                 Reimagine Your Space Into an {""}
                 <span className="italic font-normal text-accent underline decoration-accent/30 underline-offset-8">
-                  Interactive 360ÃÂ°
+                  Interactive 360°
                 </span>{""}
                 Sanctuary
               </h1>
               <p className="mt-5 text-xs sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 Snap photos of your current room, select your dream moodboard style, and watch AI reconstruct
-                and redesign your interior into a photorealistic, immersive 360Ã°Â¨ VR experience.
+                and redesign your interior into a photorealistic, immersive 360° VR experience.
               </p>
             </div>
             <div className="mt-10 sm:mt-14 relative max-w-5xl mx-auto">
@@ -380,9 +380,9 @@ function LandingPage() {
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-accent-foreground shadow-xs">
                   <Compass className="h-5 w-5" />
                 </div>
-                <h3 className="mt-4 font-serif text-base font-semibold">360Ã°Â¨ VR Experience</h3>
+                <h3 className="mt-4 font-serif text-base font-semibold">360° VR Experience</h3>
                 <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                  Look around in 360Ã°Â¨ or walk in VR headset.
+                  Look around in 360° or walk in VR headset.
                 </p>
                 <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-accent group-hover:underline">
                   Enter VR <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
@@ -395,12 +395,12 @@ function LandingPage() {
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-secondary-foreground shadow-xs">
                   <Globe className="h-5 w-5 text-primary" />
                 </div>
-                <h3 className="mt-4 font-serif text-base font-semibold">Upload 360ÃÂ° Panorama</h3>
+                <h3 className="mt-4 font-serif text-base font-semibold">Upload 360° Panorama</h3>
                 <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                  Upload any equirectangular image file to view in 360Ã°Â¨.
+                  Upload any equirectangular image file to view in 360°.
                 </p>
                 <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-primary group-hover:underline">
-                  {isUploadingPanorama ? "UploadingÃ¢ÂÂ¦" : "Upload Panorama"} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                  {isUploadingPanorama ? "Uploading…" : "Upload Panorama"} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
               <Link
@@ -433,12 +433,12 @@ function LandingPage() {
             <div>
               <p className="label-mono">Before & After Showcase</p>
               <h2 className="mt-1.5 font-serif text-3xl sm:text-4xl font-semibold">
-                Featured 360ÃÂ° <span className="text-accent italic font-normal">Transformations</span>
+                Featured 360° <span className="text-accent italic font-normal">Transformations</span>
               </h2>
             </div>
-            <p className="max-w-md text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Explore how raw empty spaces are transformed with AI-driven moodboard aesthetics into photorealistic 360Ã°Â¨ VR environments.
-            </p>
+            {/* <p className="max-w-md text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              Explore how raw empty spaces are transformed with AI-driven moodboard aesthetics into photorealistic 360° VR environments.
+            </p> */}
           </div>
 
           <div className="mt-8 flex flex-wrap gap-2">
@@ -479,7 +479,7 @@ function LandingPage() {
 
                     <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
                       <Compass className="h-3.5 w-3.5 text-accent" />
-                      <span>360ÃÂ° VR Ready</span>
+                      <span>360° VR Ready</span>
                     </div>
 
                     <button
@@ -492,11 +492,11 @@ function LandingPage() {
                       }
                       className="absolute top-3 right-3 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold text-foreground shadow-sm backdrop-blur-md hover:bg-white transition-all">
                       <Sliders className="h-3 w-3" />
-                      <span>{isAfter ? "Showing: AFFER" : "Showing: BEFORE"}</span>
+                      <span>{isAfter ? "Showing: AFTER" : "Showing: BEFORE"}</span>
                     </button>
 
                     <div className="absolute bottom-3 left-3 rounded-lg bg-black/60 px-2.5 py-1 text-[10px] font-mono text-white/90 backdrop-blur-md">
-                       Ã°ÂÂÂ© {space.dimensions}
+                       ° {space.dimensions}
                     </div>
                   </div>
 
@@ -530,7 +530,7 @@ function LandingPage() {
                       className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90"
                     >
                       <Eye className="h-3.5 w-3.5" />
-                      <span>Experience in 360ÃÂ° VR</span>
+                      <span>Experience in 360° VR</span>
                     </Link>
                   </div>
                 </div>
@@ -546,7 +546,7 @@ function LandingPage() {
                 Three Steps to Your <span className="text-accent italic font-normal">Dream Space</span>
               </h2>
               <p className="mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                From simple smartphone pictures to a fully realized 360ÃÂ° interior walkthrough.
+                From simple smartphone pictures to a fully realized 360° interior walkthrough.
               </p>
             </div>
 
@@ -570,7 +570,7 @@ function LandingPage() {
                 </div>
                 <h3 className="mt-5 font-serif text-lg font-semibold">Curated Moodboard Styling</h3>
                 <p className="mt-2 text-xs text-muted-foreground leading-relaxed flex-1">
-                  Select your desired aesthetic Ã¢ÂÂ Modern Luxury, Japandi Minimalist, or Architectural Chic. Our AI adapts the lighting, textures, and furniture.
+                  Select your desired aesthetic ° Modern Luxury, Japandi Minimalist, or Architectural Chic. Our AI adapts the lighting, textures, and furniture.
                 </p>
                 <div className="mt-4 pt-4 border-t border-border/60 flex items-center gap-2 text-xs font-semibold text-accent">
                   <CheckCircle2 className="h-4 w-4 text-accent" /> Photoreal Materials
@@ -581,9 +581,9 @@ function LandingPage() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-serif text-lg font-bold">
                   03
                 </div>
-                <h3 className="mt-5 font-serif text-lg font-semibold">360Ã°Â¨ Spatial & VR Tour</h3>
+                <h3 className="mt-5 font-serif text-lg font-semibold">360° Spatial & VR Tour</h3>
                 <p className="mt-2 text-xs text-muted-foreground leading-relaxed flex-1">
-                  Step right into your redesigned space. Look in 360ÃÂ° with smooth orbit controls or put on a VR headset for real-scale presence.
+                  Step right into your redesigned space. Look in 360° with smooth orbit controls or put on a VR headset for real-scale presence.
                 </p>
                 <div className="mt-4 pt-4 border-t border-border/60 flex items-center gap-2 text-xs font-semibold text-primary">
                   <CheckCircle2 className="h-4 w-4 text-accent" /> WebXR & Mobile Ready
@@ -600,9 +600,9 @@ function LandingPage() {
                 Curated Design <span className="text-accent italic font-normal">Moodboards</span>
               </h2>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Ã°ÂÂÂ <em>Click on any moodboard card to explore full styling details, materials, and color palette.</em>
-            </p>
+            {/* <p className="text-xs text-muted-foreground">
+               <em>Click on any moodboard card to explore full styling details, materials, and color palette.</em>
+            </p> */}
           </div>
 
           <div className="mt-8 grid gap-6 md:grid-cols-3">
@@ -650,7 +650,7 @@ function LandingPage() {
                       </div>
                     </div>
                     <span className="text-[11px] font-semibold text-primary group-hover:underline flex items-center gap-1">
-                      View Details Ã¢ÂÂ
+                      View Details °
                     </span>
                   </div>
                 </div>
@@ -683,7 +683,7 @@ function LandingPage() {
               </div>
               <h3 className="mt-4 font-serif text-base font-semibold">Instant AI Transformation</h3>
               <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-                Go from photos to high-resolution 360ÃÂ° panoramic redesigns in minutes without 3D CAD modeling.
+                Go from photos to high-resolution 360° panoramic redesigns in minutes without 3D CAD modeling.
               </p>
             </div>
 
@@ -692,7 +692,7 @@ function LandingPage() {
                 <Award className="h-5 w-5 text-accent" />
               </div>
               <h3 className="mt-4 font-serif text-base font-semibold">Immersive WebXR & VR</h3>
-              <p className="mt-2 text-xÂ³ text-muted-foreground leading-relaxed">
+              <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
                 Experience full immersion on mobile, desktop, or Apple Vision Pro & Meta Quest headsets.
               </p>
             </div>
@@ -706,7 +706,7 @@ function LandingPage() {
 
             <div className="relative max-w-2xl mx-auto">
               <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-medium tracking-tight">
-                Ready to Experience Your Room in 360ÃÂ°?
+                Ready to Experience Your Room in 360°?
               </h2>
               <p className="mt-4 text-xs sm:text-sm md:text-base text-primary-foreground/80 leading-relaxed">
                 Snap photos of your space now, select your moodboard, and step inside your redesigned sanctuary.
@@ -725,7 +725,7 @@ function LandingPage() {
                   className="rounded-full border-white/40 bg-white/10 text-white hover:bg-white/20"
                 >
                   <Link to="/vr">
-                    <Compass className="mr-2 h-4 w-4" /> View 360Ã°Â¨ VR
+                    <Compass className="mr-2 h-4 w-4" /> View 360° VR
                   </Link>
                 </Button>
               </div>
@@ -839,7 +839,7 @@ function LandingPage() {
             </div>
 
             <div className="mt-4 rounded-xl bg-secondary/50 p-3.5 border border-border/60 text-xs text-muted-foreground leading-relaxed">
-              Ã°ÂÂÂ© <strong>Lighting Tip:</strong> {selectedMoodboard.lighting}
+               <strong>Lighting Tip:</strong> {selectedMoodboard.lighting}
             </div>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3 pt-4 border-t border-border">
@@ -852,7 +852,7 @@ function LandingPage() {
                 }}
                 className="flex-1 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 shadow-md"
               >
-                <Camera className="mr-2 h-4 w-4" /> Apply This Moodboard & Capture My Room Ã¢ÂÂ
+                <Camera className="mr-2 h-4 w-4" /> Apply This Moodboard & Capture My Room 
               </Button>
               <Button
                 variant="outline"
@@ -871,16 +871,16 @@ function LandingPage() {
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <span className="font-serif font-semibold text-foreground text-sm">Roomcast Studio</span>
-            <span>Ã¢ÂÂ 360ÃÂ° AI Interior Redesign & WebXR</span>
+            <span> 360° AI Interior Redesign & WebXR</span>
           </div>
           <div className="flex gap-6">
             <Link to="/" className="hover:text-foreground">Home</Link>
             <Link to="/studio" className="hover:text-foreground">3D Studio</Link>
             <Link to="/capture" className="hover:text-foreground">Capture Room</Link>
-            <Link to="/vr" className="hover:text-foreground">360Ã°Â¨ VR</Link>
+            <Link to="/vr" className="hover:text-foreground">360° VR</Link>
             <Link to="/plan" className="hover:text-foreground">Floor Plan</Link>
           </div>
-          <div>ÃÂ© 2026 Roomcast Studio. All rights reserved.</div>
+          <div> 2026 Roomcast Studio. All rights reserved.</div>
         </div>
       </footer>
     </div>
