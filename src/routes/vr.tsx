@@ -7,13 +7,16 @@ import logo from "@/assets/logo.jpg";
 import "./vr.css";
 
 export const Route = createFileRoute("/vr")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    pano: (search.pano as string) || undefined,
+  }),
   component: VrPage,
 });
 
 // Public n8n production webhook.
 // Example in .env.local:
 // VITE_N8N_WEBHOOK_URL=https://YOUR-N8N-TUNNEL.trycloudflare.com/webhook/panorama-redesign
-const N8N_WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL as string | undefined;
+const N8N_WEBHOOK_URL = import.meta.env['VITE_N8N_WEBHOOK_URL'] as string | undefined;
 
 type PanoramaRecord = {
   id: string;
@@ -72,6 +75,7 @@ const afterPanelContent = (panorama: PanoramaRecord) => {
 };
 
 function VrPage() {
+  const search = Route.useSearch();
   const [panoramas, setPanoramas] = useState<PanoramaRecord[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [viewMode, setViewMode] = useState<"after" | "split" | "before">("after");
@@ -89,6 +93,14 @@ function VrPage() {
       const data = (await response.json()) as { panoramas?: PanoramaRecord[] };
       const loaded = data.panoramas ?? [];
       const newest = loaded.length ? loaded[0] : undefined;
+
+      const targetPanoId = search.pano;
+      if (targetPanoId) {
+        const foundIdx = loaded.findIndex((p) => p.id === targetPanoId);
+        if (foundIdx !== -1) {
+          setSelectedIndex(foundIdx);
+        }
+      }
 
       if (
         autoOpenNew &&

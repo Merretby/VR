@@ -8,12 +8,14 @@ interface BeforeAfterSliderProps {
   beforeImage?: string;
   afterImage?: string;
   className?: string;
+  aspectRatio?: string;
 }
 
 export function BeforeAfterSlider({
   beforeImage: defaultBefore = heroBefore,
   afterImage: defaultAfter = heroAfter,
   className = "",
+  aspectRatio = "aspect-[16/10] sm:aspect-[16/9]",
 }: BeforeAfterSliderProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
@@ -29,7 +31,7 @@ export function BeforeAfterSlider({
         if (!cancelled && images) setHeroImages(images);
       })
       .catch(() => {
-        // fall back to the bundled hero images
+        // fall back to bundled hero images
       });
     return () => {
       cancelled = true;
@@ -101,7 +103,7 @@ export function BeforeAfterSlider({
 
       <div
         ref={containerRef}
-        className="relative aspect-square w-full select-none overflow-hidden rounded-xl bg-muted cursor-ew-resize touch-none"
+        className={`relative ${aspectRatio} w-full select-none overflow-hidden rounded-xl bg-muted cursor-ew-resize touch-none shadow-inner`}
         onMouseDown={(e) => {
           setIsDragging(true);
           handleMove(e.clientX);
@@ -115,7 +117,7 @@ export function BeforeAfterSlider({
         <img
           src={afterImage}
           alt="After — Furnished Luxury Interior"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover object-center"
           draggable={false}
         />
 
@@ -129,17 +131,17 @@ export function BeforeAfterSlider({
           <img
             src={beforeImage}
             alt="Before — Empty Room Architecture"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover object-center"
             draggable={false}
           />
         </div>
 
         {/* Vertical Split Line Handle */}
         <div
-          className="absolute top-0 bottom-0 w-0.5 bg-white/90 shadow-[0_0_10px_rgba(0,0,0,0.5)] pointer-events-none"
+          className="absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_12px_rgba(0,0,0,0.6)] pointer-events-none"
           style={{ left: `${sliderPosition}%` }}
         >
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110 active:scale-95">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border-2 border-white bg-primary text-primary-foreground shadow-xl transition-transform hover:scale-110 active:scale-95">
             <span className="text-xs font-bold select-none">↔</span>
           </div>
         </div>

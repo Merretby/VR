@@ -1,42 +1,77 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import logo from "@/assets/logo.jpg";
+import { Sparkles, Camera, Compass, Box, Layers } from "lucide-react";
 
-const steps = [
-  { to: "/capture", label: "Capture" },
-  { to: "/measurements", label: "Measure" },
-  { to: "/plan", label: "Floor plan" },
-  { to: "/studio", label: "3D Studio" },
+const navItems = [
+  { to: "/", label: "Home", icon: Sparkles },
+  { to: "/studio", label: "3D Studio", icon: Box },
+  { to: "/capture", label: "Capture Room", icon: Camera },
+  { to: "/vr", label: "360° VR Tour", icon: Compass },
+  { to: "/plan", label: "Floor Plan", icon: Layers },
 ] as const;
 
 export function AppHeader({ current }: { current?: string }) {
+  const location = useLocation();
+  const activePath = current ?? location.pathname;
+
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3">
-        <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
-          <img
-            src={logo}
-            alt="Site Logo"
-            className="h-8 w-8 rounded-lg object-cover border border-border/80 shadow-sm"
-          />
-          <span className="font-display text-sm font-semibold tracking-tight hidden sm:inline">
-            Roomcast Studio
-          </span>
+    <header className="sticky top-0 z-50 w-full py-3 px-4 sm:px-6 transition-all duration-300">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-full border border-border/80 bg-background/85 px-4 py-2.5 shadow-sm backdrop-blur-md">
+        {/* Brand Logo & Name */}
+        <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
+          <div className="relative overflow-hidden rounded-xl border border-border/80 shadow-xs transition-transform group-hover:scale-105">
+            <img
+              src={logo}
+              alt="Roomcast Studio"
+              className="h-8 w-8 object-cover"
+            />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-serif text-base font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
+              Roomcast Studio
+            </span>
+          </div>
         </Link>
-        <nav className="ml-auto flex items-center gap-0.5 sm:gap-1 overflow-x-auto">
-          {steps.map((s) => (
-            <Link
-              key={s.to}
-              to={s.to}
-              className={`rounded-md px-2 py-1.5 text-[11px] font-medium transition-colors whitespace-nowrap sm:px-3 sm:text-xs ${
-                current === s.to
-                  ? "bg-secondary text-foreground font-semibold shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {s.label}
-            </Link>
-          ))}
+
+        {/* Center Floating Capsule Navigation */}
+        <nav className="hidden md:flex items-center gap-1 rounded-full bg-secondary/60 p-1 border border-border/60">
+          {navItems.map((item) => {
+            const isActive = activePath === item.to || (item.to !== "/" && activePath.startsWith(item.to));
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/60"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
         </nav>
+
+        {/* Right CTA buttons */}
+        <div className="flex items-center gap-2">
+          <Link
+            to="/capture"
+            className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 hover:shadow"
+          >
+            <Camera className="h-3.5 w-3.5" />
+            <span>Capture Room</span>
+          </Link>
+          <Link
+            to="/vr"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground shadow-xs transition-all hover:bg-secondary"
+          >
+            <Compass className="h-3.5 w-3.5 text-primary" />
+            <span>360° VR</span>
+          </Link>
+        </div>
       </div>
     </header>
   );
