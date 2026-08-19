@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getAdminData, deleteProject } from "@/lib/photos";
-import moodboardDefault from "@/assets/showcase/luxury-after.png";
-import moodboard1 from "@/assets/showcase/japandi-after.png";
-import moodboard2 from "@/assets/showcase/afterContemporary.png";
+import moodboardDefault from "@/assets/moodboards/moodbord.jpg";
+import moodboard1 from "@/assets/moodboards/moodbord-1.jpg";
+import moodboard2 from "@/assets/moodboards/moodbord-2.jpg";
 import { MOODBOARD_PROMPTS } from "@/lib/prompts";
 import {
   Lock,
@@ -26,6 +26,9 @@ import {
   EyeOff,
   Compass,
   AlertCircle,
+  Sparkles,
+  Palette,
+  X,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
@@ -68,6 +71,7 @@ const MOODBOARD_TEMPLATES = [
   {
     id: "luxury-warm",
     name: "Modern Luxury & Warm Elegance",
+    tag: "Luxury Warmth",
     subtitle: "Warm amber lighting, marble accents, rich walnut wood, and plush editorial seating.",
     image: moodboardDefault,
     promptKey: "luxury-warm",
@@ -75,6 +79,7 @@ const MOODBOARD_TEMPLATES = [
   {
     id: "japandi-organic",
     name: "Japandi & Organic Minimalist",
+    tag: "Organic Minimalist",
     subtitle: "Clean lines, light oak, earthy neutral tones, textured linen, and airy open spaces.",
     image: moodboard1,
     promptKey: "japandi-organic",
@@ -82,6 +87,7 @@ const MOODBOARD_TEMPLATES = [
   {
     id: "contemporary-chic",
     name: "Contemporary Architectural Chic",
+    tag: "Architectural Chic",
     subtitle: "Sleek sculptural furniture, soft matte brass, neutral boucle, and curated gallery decor.",
     image: moodboard2,
     promptKey: "contemporary-chic",
@@ -298,7 +304,7 @@ function AdminPage() {
               size="sm"
               onClick={loadDashboardData}
               disabled={loading}
-              className="border-neutral-800 hover:bg-neutral-900 text-xs"
+              className="bg-red-950 border border-red-900/40 text-red-300 hover:bg-red-900 hover:text-white text-xs"
             >
               <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
               Refresh Data
@@ -347,22 +353,38 @@ function AdminPage() {
         </div>
 
         {/* Moodboard Templates Section */}
-        <div className="space-y-4">
-          <div className="border-b border-neutral-900 pb-2">
-            <h2 className="text-lg font-semibold font-serif">Moodboard Prompt Templates</h2>
-            <p className="text-xs text-neutral-400">Click on any moodboard template to inspect and copy its system prompt.</p>
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-850 pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-amber-400" />
+                <h2 className="text-xl font-bold font-serif text-amber-100 tracking-wide">
+                  Moodboard Prompt Templates
+                </h2>
+              </div>
+              <p className="text-xs text-neutral-400 mt-1">
+                Select any moodboard template to view, inspect, or copy its AI generation prompt.
+              </p>
+            </div>
+            {/* <div className="flex items-center gap-2 text-xs text-amber-300/80 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-xl self-start sm:self-auto">
+              <FileText className="h-3.5 w-3.5 text-amber-400" />
+              <span>Editable in <code className="font-mono text-[11px] text-amber-200">src/lib/prompts.ts</code></span>
+            </div> */}
           </div>
           
           <div className="grid gap-6 md:grid-cols-3">
             {MOODBOARD_TEMPLATES.map((mb) => {
               const isSelected = selectedTemplateId === mb.id;
               const promptText = MOODBOARD_PROMPTS[mb.promptKey] || "";
+              const isCopied = copiedTemplateKey === mb.id;
               
               return (
                 <div
                   key={mb.id}
-                  className={`bg-neutral-900 border rounded-3xl overflow-hidden shadow-lg transition-all flex flex-col justify-between ${
-                    isSelected ? "border-primary ring-2 ring-primary/20 scale-[1.01]" : "border-neutral-800/80"
+                  className={`group relative bg-gradient-to-b from-neutral-900/90 to-neutral-950/90 border rounded-3xl overflow-hidden shadow-xl transition-all duration-300 flex flex-col justify-between ${
+                    isSelected 
+                      ? "border-amber-400 ring-2 ring-amber-400/20 shadow-2xl shadow-amber-500/10 scale-[1.02]" 
+                      : "border-neutral-800/80 hover:border-amber-500/40 hover:shadow-2xl hover:shadow-amber-500/5"
                   }`}
                 >
                   <div>
@@ -370,39 +392,65 @@ function AdminPage() {
                       <img
                         src={mb.image}
                         alt={mb.name}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/20 to-transparent opacity-80" />
+                      <div className="absolute top-3 left-3">
+                        <span className="inline-flex items-center gap-1 bg-black/75 backdrop-blur-md text-amber-300 border border-amber-500/30 text-[11px] px-3 py-1 rounded-full font-medium shadow-md">
+                          <Palette className="h-3 w-3 text-amber-400" />
+                          {mb.tag}
+                        </span>
+                      </div>
                     </div>
+
                     <div className="p-5 space-y-2">
-                      <h3 className="text-base font-semibold font-serif">{mb.name}</h3>
-                      <p className="text-xs text-neutral-400 leading-relaxed">{mb.subtitle}</p>
+                      <h3 className="text-base font-bold font-serif text-amber-50 group-hover:text-amber-300 transition-colors">
+                        {mb.name}
+                      </h3>
+                      <p className="text-xs text-neutral-400 leading-relaxed font-sans">
+                        {mb.subtitle}
+                      </p>
                     </div>
                   </div>
                   
                   <div className="p-5 pt-0 flex gap-2">
                     <Button
-                      variant={isSelected ? "default" : "outline"}
-                      className="flex-1 text-xs py-2 rounded-xl h-auto"
+                      variant="default"
+                      className={`flex-1 text-xs py-2.5 rounded-xl h-auto font-semibold transition-all duration-200 shadow-sm flex items-center justify-center gap-1.5 ${
+                        isSelected
+                          ? "bg-amber-400 hover:bg-amber-300 text-neutral-950 shadow-md shadow-amber-400/20 border border-amber-300"
+                          : "bg-neutral-800 hover:bg-amber-500 hover:text-neutral-950 text-amber-300 border border-amber-500/30"
+                      }`}
                       onClick={() => setSelectedTemplateId(isSelected ? null : mb.id)}
                     >
+                      <Eye className="h-3.5 w-3.5" />
                       {isSelected ? "Hide Prompt" : "View Prompt"}
                     </Button>
                     <Button
                       variant="outline"
-                      className="text-xs py-2 rounded-xl h-auto border-neutral-800 hover:bg-neutral-800 text-neutral-300 hover:text-white"
+                      className={`text-xs py-2.5 px-3.5 rounded-xl h-auto font-medium transition-all duration-200 flex items-center justify-center gap-1.5 ${
+                        isCopied
+                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-semibold"
+                          : "bg-neutral-850 hover:bg-neutral-750 text-neutral-200 border-neutral-700 hover:border-neutral-600"
+                      }`}
                       onClick={() => {
                         navigator.clipboard.writeText(promptText);
                         setCopiedTemplateKey(mb.id);
-                        toast.success("Moodboard design prompt template copied!");
+                        toast.success(`Copied prompt for ${mb.name}!`);
                         setTimeout(() => setCopiedTemplateKey(null), 2000);
                       }}
                     >
-                      {copiedTemplateKey === mb.id ? (
-                        <Check className="h-3.5 w-3.5 text-green-500 mr-1" />
+                      {isCopied ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 text-emerald-400" />
+                          <span>Copied</span>
+                        </>
                       ) : (
-                        <Copy className="h-3.5 w-3.5 mr-1" />
+                        <>
+                          <Copy className="h-3.5 w-3.5 text-neutral-400" />
+                          <span>Copy</span>
+                        </>
                       )}
-                      Copy
                     </Button>
                   </div>
                 </div>
@@ -410,36 +458,84 @@ function AdminPage() {
             })}
           </div>
           
-          {selectedTemplateId && (
-            <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="flex justify-between items-center border-b border-neutral-850 pb-3">
-                <div>
-                  <h3 className="text-sm font-semibold text-neutral-200">
-                    Prompt Template: {MOODBOARD_TEMPLATES.find(t => t.id === selectedTemplateId)?.name}
-                  </h3>
-                  <p className="text-[10px] text-neutral-500 font-mono">SYSTEM INSTRUCTION FOR REDESIGN PIPELINE</p>
+          {selectedTemplateId && (() => {
+            const currentTemplate = MOODBOARD_TEMPLATES.find(t => t.id === selectedTemplateId);
+            const promptText = MOODBOARD_PROMPTS[currentTemplate?.promptKey || ""] || "";
+            const isCopied = copiedTemplateKey === selectedTemplateId;
+
+            return (
+              <div className="relative bg-gradient-to-b from-neutral-900 via-neutral-950 to-neutral-950 border border-amber-500/30 rounded-3xl p-6 space-y-4 shadow-2xl shadow-amber-500/5 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                <div className="flex flex-wrap justify-between items-center gap-3 border-b border-neutral-850 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base font-bold font-serif text-amber-100">
+                          {currentTemplate?.name}
+                        </h3>
+                        <span className="text-[10px] font-mono uppercase bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                          System Prompt
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                        Used by n8n multi-photo redesign pipeline for {currentTemplate?.tag || "this style"}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      className={`text-xs px-4 py-2 h-auto rounded-xl font-semibold transition-all shadow-md ${
+                        isCopied
+                          ? "bg-emerald-500 text-neutral-950 hover:bg-emerald-400"
+                          : "bg-amber-400 hover:bg-amber-300 text-neutral-950 shadow-amber-400/20"
+                      }`}
+                      onClick={() => {
+                        navigator.clipboard.writeText(promptText);
+                        setCopiedTemplateKey(selectedTemplateId);
+                        toast.success("Full system prompt copied to clipboard!");
+                        setTimeout(() => setCopiedTemplateKey(null), 2000);
+                      }}
+                    >
+                      {isCopied ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 mr-1.5" />
+                          Copied to Clipboard
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5 mr-1.5" />
+                          Copy Full Prompt
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-xl h-auto py-2 px-3 text-xs"
+                      onClick={() => setSelectedTemplateId(null)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-neutral-850 hover:bg-neutral-800 text-xs px-3 py-1.5 h-auto rounded-xl"
-                  onClick={() => {
-                    const key = MOODBOARD_TEMPLATES.find(t => t.id === selectedTemplateId)?.promptKey;
-                    if (key) {
-                      navigator.clipboard.writeText(MOODBOARD_PROMPTS[key] || "");
-                      toast.success("System prompt copied to clipboard!");
-                    }
-                  }}
-                >
-                  <Copy className="h-3.5 w-3.5 mr-1.5" />
-                  Copy Full Prompt
-                </Button>
+
+                <div className="relative bg-black/90 border border-neutral-850 rounded-2xl p-5 font-mono text-xs text-neutral-300 leading-relaxed max-h-[420px] overflow-y-auto whitespace-pre-wrap selection:bg-amber-500 selection:text-black">
+                  {promptText}
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-neutral-400 bg-neutral-900/60 border border-neutral-800 rounded-xl p-3">
+                  <Sparkles className="h-4 w-4 text-amber-400 shrink-0" />
+                  <span>
+                    <strong>How to modify:</strong> You can edit prompt templates directly in <code className="font-mono text-amber-300 bg-black/50 px-1.5 py-0.5 rounded border border-amber-500/20">src/lib/prompts.ts</code> to customize the AI generation output for all future projects.
+                  </span>
+                </div>
               </div>
-              <div className="bg-neutral-950 border border-neutral-850 rounded-2xl p-4 text-xs font-mono leading-relaxed text-neutral-300 max-h-[350px] overflow-y-auto whitespace-pre-wrap selection:bg-primary selection:text-primary-foreground">
-                {MOODBOARD_PROMPTS[MOODBOARD_TEMPLATES.find(t => t.id === selectedTemplateId)?.promptKey || ""] || ""}
-              </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
 
         {/* Main Workspace List */}
