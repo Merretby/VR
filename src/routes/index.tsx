@@ -281,6 +281,7 @@ function LandingPage() {
               data: {
                 projectId,
                 image: mb.img,
+                moodboardId: mb.id,
               },
             });
           } catch (e) {

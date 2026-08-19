@@ -1,12 +1,9 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import logo from "@/assets/logo.jpg";
-import { Sparkles, Camera, Compass, Box, Layers } from "lucide-react";
+import { Sparkles, Layers, Camera } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Home", icon: Sparkles },
-  { to: "/studio", label: "3D Studio", icon: Box },
-  { to: "/capture", label: "Capture Room", icon: Camera },
-  { to: "/vr", label: "360° VR Tour", icon: Compass },
   { to: "/plan", label: "Floor Plan", icon: Layers },
 ] as const;
 
@@ -55,23 +52,15 @@ export function AppHeader({ current }: { current?: string }) {
           })}
         </nav>
 
-        {/* Right CTA buttons */}
-        <div className="flex items-center gap-2">
-          <Link
-            to="/capture"
-            className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 hover:shadow"
-          >
-            <Camera className="h-3.5 w-3.5" />
-            <span>Capture Room</span>
-          </Link>
-          <Link
-            to="/vr"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground shadow-xs transition-all hover:bg-secondary"
-          >
-            <Compass className="h-3.5 w-3.5 text-primary" />
-            <span>360° VR</span>
-          </Link>
-        </div>
+        {/* Capture My Room Button */}
+        <Link
+          to="/capture"
+          className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
+        >
+          <Camera className="h-4 w-4" />
+          <span className="hidden sm:inline">Capture My Room</span>
+        </Link>
+
       </div>
     </header>
   );

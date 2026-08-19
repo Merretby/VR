@@ -494,11 +494,21 @@ async function triggerN8nWorkflow(panorama: {
 
   const visionBoardPath = await resolveVisionBoardPath(panorama.project_id);
 
+  const { supabase } = await import("./supabase");
+  const { data: projectData } = await supabase
+    .from("projects")
+    .select("prompt")
+    .eq("id", panorama.project_id)
+    .maybeSingle();
+
+  const prompt = projectData?.prompt || null;
+
   const payload = {
     panoramaId: panorama.id,
     projectId: panorama.project_id,
     panoramaPath,
     visionBoardPath,
+    prompt,
   };
 
   console.log("TRIGGERING N8N WORKFLOW", payload);
@@ -1332,14 +1342,15 @@ export const saveCapturedPhotos = createServerFn({
 export const saveVisionBoard = createServerFn({
   method: 'POST',
 })
-  .validator((data: { projectId: string; image: string }) => data)
+  .validator((data: { projectId: string; image: string; moodboardId?: string }) => data)
   .handler(async ({ data }) => {
     const crypto = await import('crypto');
 
     const { supabase, SUPABASE_BUCKET } = await import('./supabase');
+    const { MOODBOARD_PROMPTS } = await import('./prompts');
 
     try {
-      const { projectId, image } = data;
+      const { projectId, image, moodboardId } = data;
 
       console.log('SAVE VISION BOARD CALLED', {
         projectId,
@@ -1413,10 +1424,18 @@ export const saveVisionBoard = createServerFn({
 
       const visionBoardPath = publicUrlData.publicUrl;
 
-      // Save URL to the project row
+      // Get prompt text for this moodboard
+      const promptText = moodboardId ? (MOODBOARD_PROMPTS[moodboardId] || null) : null;
+
+      // Save URL and prompt to the project row
+      const updateData: any = { vision_board_path: visionBoardPath };
+      if (promptText) {
+        updateData.prompt = promptText;
+      }
+
       const { error: updateError } = await supabase
         .from('projects')
-        .update({ vision_board_path: visionBoardPath })
+        .update(updateData)
         .eq('id', projectId);
 
       if (updateError) {
@@ -1493,12 +1512,21 @@ try {
 
   const panoramaId = `pano-${Date.now()}-${crypto.randomUUID().slice(0, 6)}`;
 
+  const { data: projectData } = await supabase
+    .from('projects')
+    .select('prompt')
+    .eq('id', projectId)
+    .maybeSingle();
+
+  const prompt = projectData?.prompt || promptText || null;
+
   const payload = {
     projectId,
     panoramaId,
     projectName: projectId,
     photos,
     visionBoardPath,
+    prompt,
   };
 
   console.log('TRIGGERING N8N MULTI PHOTO WORKFLOW', {
@@ -1508,6 +1536,7 @@ try {
     photoCount: photos.length,
     photos,
     visionBoardPath,
+    prompt,
   });
 
   const controller = new AbortController();

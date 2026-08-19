@@ -267,6 +267,7 @@ function CapturePage() {
             data: {
               projectId: projectIdRef.current,
               image: base64data,
+              moodboardId: moodboard.id,
             },
           });
           toast.success("Moodboard saved! Entering 360° VR View…");
