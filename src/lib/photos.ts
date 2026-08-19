@@ -1623,3 +1623,139 @@ export const getProjectVisionBoard = createServerFn({
       visionBoardPath: project?.vision_board_path ?? null,
     };
   });
+
+
+// ADMIN PANEL SERVER FUNCTIONS
+// =====================================================
+export const getAdminData = createServerFn({
+  method: 'GET',
+})
+  .handler(async () => {
+    const { supabase } = await import('./supabase');
+
+    try {
+      const { data: projects, error: projectsError } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (projectsError) {
+        throw projectsError;
+      }
+
+      const { data: photos, error: photosError } = await supabase
+        .from('photos')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (photosError) {
+        throw photosError;
+      }
+
+      const { data: panoramas, error: panoramasError } = await supabase
+        .from('panoramas')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (panoramasError) {
+        throw panoramasError;
+      }
+
+      return {
+        success: true,
+        projects: projects ?? [],
+        photos: photos ?? [],
+        panoramas: panoramas ?? [],
+      };
+    } catch (error) {
+      console.error('getAdminData error:', error);
+      throw error;
+    }
+  });
+
+export const deleteProject = createServerFn({
+  method: 'POST',
+})
+  .validator((projectId: string) => projectId)
+  .handler(async ({ data: projectId }) => {
+    const { supabase, SUPABASE_BUCKET } = await import('./supabase');
+
+    try {
+      if (!projectId) {
+        throw new Error('Missing projectId');
+      }
+
+      const { data: projectRow } = await supabase
+        .from('projects')
+        .select('vision_board_path')
+        .eq('id', projectId)
+        .maybeSingle();
+
+      const { data: panoramas } = await supabase
+        .from('panoramas')
+        .select('file_path, designed_file_path')
+        .eq('project_id', projectId);
+
+      const { data: photos } = await supabase
+        .from('photos')
+        .select('file_path')
+        .eq('project_id', projectId);
+
+      const filesToDelete: string[] = [];
+
+      if (projectRow?.vision_board_path) {
+        const path = storagePathFromPublicUrl(projectRow.vision_board_path);
+        if (path) filesToDelete.push(path);
+      }
+
+      if (panoramas) {
+        for (const p of panoramas) {
+          if (p.file_path) {
+            const path = storagePathFromPublicUrl(p.file_path);
+            if (path) filesToDelete.push(path);
+          }
+          if (p.designed_file_path) {
+            const path = storagePathFromPublicUrl(p.designed_file_path);
+            if (path) filesToDelete.push(path);
+          }
+        }
+      }
+
+      if (photos) {
+        for (const ph of photos) {
+          if (ph.file_path) {
+            const path = storagePathFromPublicUrl(ph.file_path);
+            if (path) filesToDelete.push(path);
+          }
+        }
+      }
+
+      if (filesToDelete.length > 0) {
+        console.log('DELETING FILES FROM STORAGE', filesToDelete);
+        const { error: storageError } = await supabase.storage
+          .from(SUPABASE_BUCKET)
+          .remove(filesToDelete);
+        if (storageError) {
+          console.warn('Error deleting files from storage:', storageError);
+        }
+      }
+
+      // Cascading deletes in DB
+      await supabase.from('panoramas').delete().eq('project_id', projectId);
+      await supabase.from('photos').delete().eq('project_id', projectId);
+      const { error: deleteError } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      console.log('PROJECT DELETED SUCCESSFULLY', projectId);
+      return { success: true, projectId };
+    } catch (error) {
+      console.error('deleteProject error:', error);
+      throw error;
+    }
+  });

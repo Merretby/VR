@@ -1,3 +1,4 @@
+import { ShieldCheck } from "lucide-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -135,6 +136,13 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster />
+      <Link
+        to="/admin"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border border-amber-500/30 bg-black/80 px-4 py-2.5 text-xs font-semibold text-amber-300 shadow-2xl backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-black hover:border-amber-400 hover:shadow-amber-500/20 active:scale-95"
+      >
+        <ShieldCheck className="h-4 w-4 text-amber-400" />
+        <span>Admin Portal</span>
+      </Link>
     </QueryClientProvider>
   );
 }
