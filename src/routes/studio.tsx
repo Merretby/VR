@@ -20,6 +20,7 @@ import {
 import { FURNITURE_LIBRARY, checkFit, getSpec } from "@/lib/furniture";
 import { activeDesign, roomActions, useRoomProject } from "@/lib/room-store";
 import { DESIGN_STYLES, getStyle } from "@/lib/design-styles";
+import { format, useDict } from "@/lib/i18n";
 
 const RoomExperience = lazy(() => import("@/components/room3d/RoomExperience"));
 
@@ -35,7 +36,8 @@ export const Route = createFileRoute("/studio")({
       { property: "og:title", content: "3D Room Studio — Design, 360° and VR" },
       {
         property: "og:description",
-        content: "Your exact room geometry in 3D with a full design editor, AI styling and VR mode.",
+        content:
+          "Your exact room geometry in 3D with a full design editor, AI styling and VR mode.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -59,6 +61,7 @@ const FLOOR_SWATCHES = ["#b08b5f", "#8d6743", "#d8c8b0", "#6d6a65", "#3f3b38", "
 
 function StudioPage() {
   const project = useRoomProject();
+  const d = useDict();
   const plan = project.plan;
   const design = activeDesign(project);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -74,11 +77,26 @@ function StudioPage() {
 
   const update = (patch: Partial<Design>) => roomActions.upsertDesign({ ...design, ...patch });
 
+  const furnitureName = (type: string) =>
+    type in d.studio.furniture
+      ? d.studio.furniture[type as keyof typeof d.studio.furniture]
+      : getSpec(type).name;
+
+  const localizedFitMessage = (fit: ReturnType<typeof checkFit>): string => {
+    if (!fit.reason) return fit.message;
+    return format(d.studio.fit[fit.reason], fit.params ?? {});
+  };
+
   const addFurniture = (type: string) => {
     const spec = getSpec(type);
     const fit = checkFit(spec, plan.widthM, plan.lengthM, plan.heightM);
     if (!fit.fits) {
-      toast.error(`❌ ${spec.name}: ${fit.message}`);
+      toast.error(
+        format(d.studio.toastAddFailed, {
+          name: furnitureName(type),
+          message: localizedFitMessage(fit),
+        }),
+      );
       return;
     }
     const item: PlacedFurniture = {
@@ -90,7 +108,9 @@ function StudioPage() {
     };
     update({ furniture: [...design.furniture, item] });
     setSelectedId(item.id);
-    toast.success(`✅ ${spec.name} added — ${fit.message}`);
+    toast.success(
+      format(d.studio.toastAdded, { name: furnitureName(type), message: localizedFitMessage(fit) }),
+    );
   };
 
   const patchItem = (id: string, patch: Partial<PlacedFurniture>) =>
@@ -104,9 +124,14 @@ function StudioPage() {
   };
 
   const saveAs = (name: string) => {
-    const copy: Design = { ...design, id: uid(), name, furniture: design.furniture.map((f) => ({ ...f })) };
+    const copy: Design = {
+      ...design,
+      id: uid(),
+      name,
+      furniture: design.furniture.map((f) => ({ ...f })),
+    };
     roomActions.upsertDesign(copy);
-    toast.success(`Saved design “${name}”`);
+    toast.success(format(d.studio.toastSavedAs, { name }));
   };
 
   return (
@@ -115,11 +140,11 @@ function StudioPage() {
       <main className="mx-auto max-w-[110rem] px-3 py-4 sm:px-4 sm:py-6">
         {hasErrors && (
           <div className="mb-4 rounded-lg border border-destructive/60 bg-destructive/10 p-3 text-xs sm:text-sm">
-            The floor plan still has geometry errors.{" "}
+            {d.studio.errorsBannerA}{" "}
             <Link to="/plan" className="font-medium underline">
-              Fix them first
+              {d.studio.errorsBannerLink}
             </Link>{" "}
-            — the 3D room mirrors the plan exactly.
+            {d.studio.errorsBannerB}
           </div>
         )}
 
@@ -130,7 +155,7 @@ function StudioPage() {
                 <Suspense
                   fallback={
                     <div className="flex h-full items-center justify-center rounded-xl border bg-card text-sm text-muted-foreground">
-                      Building 3D room from validated geometry…
+                      {d.studio.buildingRoom}
                     </div>
                   }
                 >
@@ -149,18 +174,31 @@ function StudioPage() {
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <Button variant="secondary" size="sm" onClick={() => setCompare((c) => !c)}>
-                {compare ? "Hide" : "Show"} Before / After
+                {compare ? d.studio.hideCompare : d.studio.showCompare}
               </Button>
               <span className="font-mono text-[10px] text-muted-foreground sm:text-xs">
                 {plan.widthM.toFixed(2)} × {plan.lengthM.toFixed(2)} × {plan.heightM.toFixed(2)} m ·{" "}
-                {(plan.widthM * plan.lengthM).toFixed(2)} m² · {design.furniture.length} items
+                {(plan.widthM * plan.lengthM).toFixed(2)} m² ·{" "}
+                {format(d.studio.itemsCount, { count: design.furniture.length })}
               </span>
             </div>
 
             {compare && (
               <div className="grid gap-4 md:grid-cols-2">
-                <ComparePanel title="Original Room" plan={plan} design={original} photos={project.photos} mounted={mounted} />
-                <ComparePanel title={`Designed — ${design.name}`} plan={plan} design={design} photos={project.photos} mounted={mounted} />
+                <ComparePanel
+                  title={d.studio.originalRoom}
+                  plan={plan}
+                  design={original}
+                  photos={project.photos}
+                  mounted={mounted}
+                />
+                <ComparePanel
+                  title={format(d.studio.designedRoom, { name: design.name })}
+                  plan={plan}
+                  design={design}
+                  photos={project.photos}
+                  mounted={mounted}
+                />
               </div>
             )}
           </div>
@@ -168,32 +206,36 @@ function StudioPage() {
           <Tabs defaultValue="design" className="min-w-0">
             <TabsList className="w-full">
               <TabsTrigger value="design" className="flex-1 text-xs sm:text-sm">
-                <span className="hidden sm:inline">🎨 </span>Design
+                <span className="hidden sm:inline">🎨 </span>
+                {d.studio.tabDesign}
               </TabsTrigger>
               <TabsTrigger value="styles" className="flex-1 text-xs sm:text-sm">
-                <span className="hidden sm:inline">✨ </span>Styles
+                <span className="hidden sm:inline">✨ </span>
+                {d.studio.tabStyles}
               </TabsTrigger>
               <TabsTrigger value="ai" className="flex-1 text-xs sm:text-sm">
-                <span className="hidden sm:inline">✨ </span>AI
+                <span className="hidden sm:inline">✨ </span>
+                {d.studio.tabAi}
               </TabsTrigger>
               <TabsTrigger value="versions" className="flex-1 text-xs sm:text-sm">
-                <span className="hidden sm:inline">💾 </span>Designs
+                <span className="hidden sm:inline">💾 </span>
+                {d.studio.tabVersions}
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="design" className="space-y-5">
               <section className="rounded-xl border bg-card p-4 sm:p-5">
-                <p className="label-mono">Wall colour</p>
+                <p className="label-mono">{d.studio.wallColor}</p>
                 <Swatches
                   colors={WALL_SWATCHES}
                   value={design.wallColor}
                   onChange={(c) => update({ wallColor: c })}
                 />
-                <p className="label-mono mt-5">Flooring</p>
+                <p className="label-mono mt-5">{d.studio.flooring}</p>
                 {project.photos["floor"] && (
                   <div className="mt-2 mb-2 flex items-center justify-between rounded-lg border bg-secondary/50 p-2 text-xs">
                     <span className="flex items-center gap-1.5 font-medium">
-                      <span>📸</span> Captured Floor Photo Active
+                      <span>📸</span> {d.studio.capturedFloorActive}
                     </span>
                     <Button
                       size="sm"
@@ -201,7 +243,7 @@ function StudioPage() {
                       className="h-7 text-xs text-muted-foreground hover:text-destructive"
                       onClick={() => roomActions.clearPhoto("floor")}
                     >
-                      Use Design Floor
+                      {d.studio.useDesignFloor}
                     </Button>
                   </div>
                 )}
@@ -213,24 +255,31 @@ function StudioPage() {
                     update({ floorColor: c });
                   }}
                 />
-                <p className="label-mono mt-5">Lighting</p>
+                <p className="label-mono mt-5">{d.studio.lighting}</p>
                 <div className="mt-2 flex gap-2">
                   {(["warm", "neutral", "cool"] as const).map((l) => (
                     <button
                       key={l}
                       onClick={() => update({ lighting: l })}
-                      className={`flex-1 rounded-md border px-3 py-2 text-xs capitalize transition-colors ${
-                        design.lighting === l ? "border-primary text-foreground" : "text-muted-foreground"
+                      className={`flex-1 rounded-md border px-3 py-2 text-xs transition-colors ${
+                        design.lighting === l
+                          ? "border-primary text-foreground"
+                          : "text-muted-foreground"
                       }`}
                     >
-                      💡 {l}
+                      💡{" "}
+                      {l === "warm"
+                        ? d.studio.lightingWarm
+                        : l === "neutral"
+                          ? d.studio.lightingNeutral
+                          : d.studio.lightingCool}
                     </button>
                   ))}
                 </div>
               </section>
 
               <section className="rounded-xl border bg-card p-4 sm:p-5">
-                <p className="label-mono">Layout map — drag to move furniture</p>
+                <p className="label-mono">{d.studio.layoutMap}</p>
                 <PlacementMap
                   plan={plan}
                   furniture={design.furniture}
@@ -242,15 +291,19 @@ function StudioPage() {
                   <div className="mt-4 space-y-3">
                     <div className="flex items-center justify-between text-sm">
                       <span>
-                        {getSpec(selected.type).icon} {getSpec(selected.type).name}
+                        {getSpec(selected.type).icon} {furnitureName(selected.type)}
                       </span>
-                      <Button size="sm" variant="destructive" onClick={() => removeItem(selected.id)}>
-                        Delete
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => removeItem(selected.id)}
+                      >
+                        {d.studio.delete}
                       </Button>
                     </div>
                     <div>
                       <Label className="text-[11px] text-muted-foreground">
-                        Rotation · {selected.rotation}°
+                        {format(d.studio.rotation, { angle: selected.rotation })}
                       </Label>
                       <Slider
                         value={[selected.rotation]}
@@ -263,7 +316,8 @@ function StudioPage() {
                     </div>
                     <p className="font-mono text-[11px] text-muted-foreground">
                       x {selected.x.toFixed(2)} m · z {selected.z.toFixed(2)} m ·{" "}
-                      {getSpec(selected.type).width.toFixed(2)} × {getSpec(selected.type).depth.toFixed(2)} ×{" "}
+                      {getSpec(selected.type).width.toFixed(2)} ×{" "}
+                      {getSpec(selected.type).depth.toFixed(2)} ×{" "}
                       {getSpec(selected.type).height.toFixed(2)} m
                     </p>
                   </div>
@@ -271,7 +325,7 @@ function StudioPage() {
               </section>
 
               <section className="rounded-xl border bg-card p-4 sm:p-5">
-                <p className="label-mono">Add furniture</p>
+                <p className="label-mono">{d.studio.addFurniture}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {FURNITURE_LIBRARY.map((spec) => {
                     const fit = checkFit(spec, plan.widthM, plan.lengthM, plan.heightM);
@@ -280,10 +334,10 @@ function StudioPage() {
                         key={spec.type}
                         onClick={() => addFurniture(spec.type)}
                         disabled={!fit.fits}
-                        title={fit.message}
+                        title={localizedFitMessage(fit)}
                         className="rounded-lg border px-3 py-2 text-sm transition-colors hover:border-primary disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        {spec.icon} {spec.name}
+                        {spec.icon} {furnitureName(spec.type)}
                       </button>
                     );
                   })}
@@ -301,30 +355,39 @@ function StudioPage() {
 
             <TabsContent value="versions">
               <section className="rounded-xl border bg-card p-4 sm:p-5">
-                <p className="label-mono">My room</p>
+                <p className="label-mono">{d.studio.myRoom}</p>
                 <ul className="mt-3 space-y-2">
-                  {project.designs.map((d) => (
-                    <li key={d.id} className="flex items-center gap-2">
+                  {project.designs.map((dv) => (
+                    <li key={dv.id} className="flex items-center gap-2">
                       <button
-                        onClick={() => roomActions.setActiveDesign(d.id)}
+                        onClick={() => roomActions.setActiveDesign(dv.id)}
                         className={`flex-1 rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
-                          d.id === design.id ? "border-primary" : "hover:bg-secondary"
+                          dv.id === design.id ? "border-primary" : "hover:bg-secondary"
                         }`}
                       >
-                        {d.id === "original" ? "🏠" : "✨"} {d.name}
+                        {dv.id === "original" ? "🏠" : "✨"}{" "}
+                        {dv.id === "original" ? d.studio.originalDesignName : dv.name}
                         <span className="ml-2 font-mono text-[11px] text-muted-foreground">
-                          {d.furniture.length} items
+                          {format(d.studio.itemsCount, { count: dv.furniture.length })}
                         </span>
                       </button>
-                      {d.id !== "original" && (
-                        <Button size="sm" variant="ghost" onClick={() => roomActions.removeDesign(d.id)}>
+                      {dv.id !== "original" && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => roomActions.removeDesign(dv.id)}
+                        >
                           ✕
                         </Button>
                       )}
                     </li>
                   ))}
                 </ul>
-                <SaveAs onSave={saveAs} />
+                <SaveAs
+                  onSave={saveAs}
+                  placeholder={d.studio.newVersionPlaceholder}
+                  saveLabel={d.studio.saveAs}
+                />
               </section>
             </TabsContent>
           </Tabs>
@@ -368,11 +431,13 @@ function StylesPanel({
   design: Design;
   onApply: (patch: Partial<Design>) => void;
 }) {
+  const d = useDict();
   const [styleId, setStyleId] = useState<string | null>(null);
   const [palette, setPalette] = useState<string[] | null>(null);
 
   const active = getStyle(styleId ?? DESIGN_STYLES[0]!.id);
   const colors = palette ?? active.colors;
+  const activeDict = d.designStyles[active.id as keyof typeof d.designStyles];
 
   const selectStyle = (id: string) => {
     setStyleId(id);
@@ -398,52 +463,55 @@ function StylesPanel({
   return (
     <div className="space-y-5">
       <section className="rounded-xl border bg-card p-4 sm:p-5">
-        <p className="label-mono">Interior design styles</p>
+        <p className="label-mono">{d.studio.interiorStyles}</p>
         <div className="mt-5 grid grid-cols-2 gap-2">
-          {DESIGN_STYLES.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => selectStyle(s.id)}
-              className={`rounded-lg border p-5 text-left transition-colors ${
-                active.id === s.id ? "border-primary" : "hover:border-primary/50"
-              }`}
-            >
-              <p className="text-sm font-medium">{s.name}</p>
-              <p className="mt-0.5 text-[14px] text-muted-foreground">{s.tagline}</p>
-              <div className="mt-2 flex gap-1">
-                {s.colors.map((c) => (
-                  <span
-                    key={c}
-                    className="h-5 w-5 rounded-full border border-black/10"
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
-              </div>
-            </button>
-          ))}
+          {DESIGN_STYLES.map((s) => {
+            const sDict = d.designStyles[s.id as keyof typeof d.designStyles];
+            return (
+              <button
+                key={s.id}
+                onClick={() => selectStyle(s.id)}
+                className={`rounded-lg border p-5 text-left transition-colors ${
+                  active.id === s.id ? "border-primary" : "hover:border-primary/50"
+                }`}
+              >
+                <p className="text-sm font-medium">{sDict.name}</p>
+                <p className="mt-0.5 text-[14px] text-muted-foreground">{sDict.tagline}</p>
+                <div className="mt-2 flex gap-1">
+                  {s.colors.map((c) => (
+                    <span
+                      key={c}
+                      className="h-5 w-5 rounded-full border border-black/10"
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </section>
 
       <section className="rounded-xl border bg-card p-4 sm:p-5">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-lg font-semibold">{active.name}</p>
-            <p className="mt-0.7 text-[14px] text-muted-foreground">{active.tagline}</p>
+            <p className="text-lg font-semibold">{activeDict.name}</p>
+            <p className="mt-0.7 text-[14px] text-muted-foreground">{activeDict.tagline}</p>
           </div>
           <Button size="sm" onClick={apply}>
-            Apply to room
+            {d.studio.applyToRoom}
           </Button>
         </div>
 
         <div className="mt-5 flex items-center justify-between">
-          <p className="label-mono">Palette — tap a colour to change it</p>
+          <p className="label-mono">{d.studio.paletteHint}</p>
           <Button
             size="sm"
             variant="outline"
             className="h-7 text-xs"
             onClick={() => setPalette([...active.colors])}
           >
-            Default
+            {d.studio.defaultPalette}
           </Button>
         </div>
         <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -466,9 +534,9 @@ function StylesPanel({
           ))}
         </div>
 
-        <ChipList label="Materials" items={active.materials} />
-        <ChipList label="Lighting" items={active.lighting} />
-        <ChipList label="Signature furniture" items={active.furniture} />
+        <ChipList label={d.studio.materials} items={activeDict.materials} />
+        <ChipList label={d.studio.chipLighting} items={activeDict.lighting} />
+        <ChipList label={d.studio.signatureFurniture} items={activeDict.furniture} />
       </section>
     </div>
   );
@@ -574,8 +642,12 @@ function PlacementMap({
       <rect x={0} y={0} width={plan.widthM} height={plan.lengthM} fill="transparent" />
       {plan.openings.map((o) => {
         const wall = plan.walls.find((w) => w.id === o.wallId)!;
-        const dx = (wall.end.x - wall.start.x) / (Math.hypot(wall.end.x - wall.start.x, wall.end.z - wall.start.z) || 1);
-        const dz = (wall.end.z - wall.start.z) / (Math.hypot(wall.end.x - wall.start.x, wall.end.z - wall.start.z) || 1);
+        const dx =
+          (wall.end.x - wall.start.x) /
+          (Math.hypot(wall.end.x - wall.start.x, wall.end.z - wall.start.z) || 1);
+        const dz =
+          (wall.end.z - wall.start.z) /
+          (Math.hypot(wall.end.x - wall.start.x, wall.end.z - wall.start.z) || 1);
         const cx = wall.start.x + dx * o.offset;
         const cz = wall.start.z + dz * o.offset;
         return (
@@ -629,12 +701,20 @@ function PlacementMap({
   );
 }
 
-function SaveAs({ onSave }: { onSave: (name: string) => void }) {
+function SaveAs({
+  onSave,
+  placeholder,
+  saveLabel,
+}: {
+  onSave: (name: string) => void;
+  placeholder: string;
+  saveLabel: string;
+}) {
   const [name, setName] = useState("");
   return (
     <div className="mt-4 flex gap-2">
       <Input
-        placeholder="New version name"
+        placeholder={placeholder}
         value={name}
         onChange={(e) => setName(e.target.value)}
         className="h-9"
@@ -647,17 +727,16 @@ function SaveAs({ onSave }: { onSave: (name: string) => void }) {
           setName("");
         }}
       >
-        Save as
+        {saveLabel}
       </Button>
     </div>
   );
 }
 
 function AiPanel({ plan, design }: { plan: FloorPlan; design: Design }) {
+  const d = useDict();
   const run = useServerFn(designRoomWithAi);
-  const [prompt, setPrompt] = useState(
-    "Make my room modern with beige walls, wooden flooring, a large sofa and warm lighting.",
-  );
+  const [prompt, setPrompt] = useState(d.studio.aiDefaultPrompt);
   const [style, setStyle] = useState("Modern");
   const [busy, setBusy] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
@@ -688,7 +767,7 @@ function AiPanel({ plan, design }: { plan: FloorPlan; design: Design }) {
             // AI may only arrange furniture — geometry is clamped to the real room.
             x: Math.min(Math.max(f.x, hw), Math.max(hw, plan.widthM - hw)),
             z: Math.min(Math.max(f.z, hd), Math.max(hd, plan.lengthM - hd)),
-            rotation: ((Math.round(f.rotation / 10) * 10) % 360 + 360) % 360,
+            rotation: (((Math.round(f.rotation / 10) * 10) % 360) + 360) % 360,
           };
         });
 
@@ -697,19 +776,21 @@ function AiPanel({ plan, design }: { plan: FloorPlan; design: Design }) {
 
       roomActions.upsertDesign({
         id: uid(),
-        name: result.name || `${style} design`,
+        name: result.name || format(d.studio.aiDesignName, { style }),
         wallColor: /^#[0-9a-f]{6}$/i.test(result.wallColor) ? result.wallColor : design.wallColor,
-        floorColor: /^#[0-9a-f]{6}$/i.test(result.floorColor) ? result.floorColor : design.floorColor,
+        floorColor: /^#[0-9a-f]{6}$/i.test(result.floorColor)
+          ? result.floorColor
+          : design.floorColor,
         lighting,
         furniture,
       });
       setSummary(result.summary);
-      toast.success("AI design applied to your room");
+      toast.success(d.studio.toastAiApplied);
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
-      if (message.includes("429")) toast.error("AI is rate limited — try again shortly.");
-      else if (message.includes("402")) toast.error("AI credits exhausted — add credits to continue.");
-      else toast.error("The AI designer could not finish. Try again.");
+      if (message.includes("429")) toast.error(d.studio.toastAiRateLimited);
+      else if (message.includes("402")) toast.error(d.studio.toastAiNoCredits);
+      else toast.error(d.studio.toastAiFailed);
     } finally {
       setBusy(false);
     }
@@ -717,7 +798,7 @@ function AiPanel({ plan, design }: { plan: FloorPlan; design: Design }) {
 
   return (
     <section className="rounded-xl border bg-card p-5">
-      <p className="label-mono">Design my room with AI</p>
+      <p className="label-mono">{d.studio.aiDesignTitle}</p>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {STYLES.map((s) => (
           <button
@@ -727,7 +808,7 @@ function AiPanel({ plan, design }: { plan: FloorPlan; design: Design }) {
               style === s ? "border-primary text-foreground" : "text-muted-foreground"
             }`}
           >
-            {s}
+            {d.studio.aiStyles[s as keyof typeof d.studio.aiStyles]}
           </button>
         ))}
       </div>
@@ -736,15 +817,12 @@ function AiPanel({ plan, design }: { plan: FloorPlan; design: Design }) {
         onChange={(e) => setPrompt(e.target.value)}
         rows={4}
         className="mt-3 text-sm"
-        placeholder="Describe the room you want…"
+        placeholder={d.studio.aiPromptPlaceholder}
       />
       <Button className="mt-3 w-full" disabled={busy} onClick={generate}>
-        {busy ? "Designing…" : "✨ Design My Room With AI"}
+        {busy ? d.studio.aiDesigning : d.studio.aiDesignButton}
       </Button>
-      <p className="mt-3 text-[11px] text-muted-foreground">
-        The AI only arranges furniture and finishes. Walls, doors and windows keep the exact
-        geometry you validated.
-      </p>
+      <p className="mt-3 text-[11px] text-muted-foreground">{d.studio.aiDisclaimer}</p>
       {summary && <p className="mt-3 text-sm text-muted-foreground">{summary}</p>}
     </section>
   );

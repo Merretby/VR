@@ -1,15 +1,18 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import logo from "@/assets/logo.jpg";
 import { Sparkles, Layers, Camera } from "lucide-react";
-
-const navItems = [
-  { to: "/", label: "Home", icon: Sparkles },
-  { to: "/plan", label: "Floor Plan", icon: Layers },
-] as const;
+import { useDict } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export function AppHeader({ current }: { current?: string }) {
   const location = useLocation();
+  const d = useDict();
   const activePath = current ?? location.pathname;
+
+  const navItems = [
+    { to: "/", label: d.header.home, icon: Sparkles },
+    { to: "/plan", label: d.header.floorPlan, icon: Layers },
+  ] as const;
 
   return (
     <header className="sticky top-0 z-50 w-full py-3 px-4 sm:px-6 transition-all duration-300">
@@ -52,14 +55,18 @@ export function AppHeader({ current }: { current?: string }) {
           })}
         </nav>
 
-        {/* Capture My Room Button */}
-        <Link
-          to="/capture"
-          className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
-        >
-          <Camera className="h-4 w-4" />
-          <span className="hidden sm:inline">Capture My Room</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+
+          {/* Capture My Room Button */}
+          <Link
+            to="/capture"
+            className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
+          >
+            <Camera className="h-4 w-4" />
+            <span className="hidden sm:inline">{d.header.captureMyRoom}</span>
+          </Link>
+        </div>
 
       </div>
     </header>

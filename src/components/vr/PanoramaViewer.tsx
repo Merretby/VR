@@ -9,11 +9,15 @@ export function PanoramaViewer({
   vrButtonId,
   alternateImageUrl,
   toggleLabel,
+  toggleBackLabel,
 }: {
   imageUrl: string;
   vrButtonId?: string | undefined;
   alternateImageUrl?: string | null;
-  toggleLabel?: "BEFORE" | "AFTER";
+  /** Label on the in-VR button while viewing the primary image (switches to the alternate). */
+  toggleLabel?: string;
+  /** Label on the in-VR button while viewing the alternate image (switches back). */
+  toggleBackLabel?: string;
 }) {
   const mountRef = useRef<HTMLDivElement | null>(null);
 
@@ -290,12 +294,7 @@ export function PanoramaViewer({
       toggleMaterial,
     );
 
-    const primaryLabel =
-      toggleLabel === "AFTER"
-        ? "BEFORE"
-        : toggleLabel === "BEFORE"
-          ? "AFTER"
-          : "";
+    const primaryLabel = toggleBackLabel ?? "";
 
     const alternateLabel = toggleLabel ?? "";
 
@@ -640,7 +639,7 @@ export function PanoramaViewer({
         container.removeChild(renderer.domElement);
       }
     };
-  }, [imageUrl, vrButtonId, alternateImageUrl, toggleLabel]);
+  }, [imageUrl, vrButtonId, alternateImageUrl, toggleLabel, toggleBackLabel]);
 
   return (
     <div

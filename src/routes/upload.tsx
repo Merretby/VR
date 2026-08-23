@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { analyzeFloorPlan } from "@/lib/ai.functions";
 import { buildFloorPlan, wallLength } from "@/lib/room-model";
 import { roomActions } from "@/lib/room-store";
+import { format, useDict } from "@/lib/i18n";
 
 export const Route = createFileRoute("/upload")({
   head: () => ({
@@ -20,7 +21,8 @@ export const Route = createFileRoute("/upload")({
       { property: "og:title", content: "Upload a 2D Floor Plan — Roomcast Studio" },
       {
         property: "og:description",
-        content: "AI floor-plan analysis: walls, doors, windows and dimensions turned into structured geometry.",
+        content:
+          "AI floor-plan analysis: walls, doors, windows and dimensions turned into structured geometry.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -29,17 +31,11 @@ export const Route = createFileRoute("/upload")({
   component: UploadPage,
 });
 
-const DETECTS = [
-  { icon: "🧱", label: "Walls" },
-  { icon: "🚪", label: "Doors" },
-  { icon: "🪟", label: "Windows" },
-  { icon: "📏", label: "Dimensions" },
-  { icon: "🏠", label: "Rooms" },
-  { icon: "🛋", label: "Furniture" },
-];
+const DETECT_ICONS = ["🧱", "🚪", "🪟", "📏", "🏠", "🛋"];
 
 function UploadPage() {
   const navigate = useNavigate();
+  const d = useDict();
   const analyze = useServerFn(analyzeFloorPlan);
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
@@ -49,7 +45,7 @@ function UploadPage() {
 
   const onFile = (file: File) => {
     if (file.size > 20 * 1024 * 1024) {
-      toast.error("File is larger than 20 MB.");
+      toast.error(d.upload.toastTooLarge);
       return;
     }
     setFileName(file.name);
@@ -106,12 +102,18 @@ function UploadPage() {
           const len = wallLength(back);
           // back wall runs right→left, so mirror the "from left" offset
           const t = len - result.doorOffsetFromLeft;
-          return { ...o, offset: Math.min(Math.max(t, o.width / 2 + 0.05), len - o.width / 2 - 0.05) };
+          return {
+            ...o,
+            offset: Math.min(Math.max(t, o.width / 2 + 0.05), len - o.width / 2 - 0.05),
+          };
         }
         if (o.type === "window" && result.windowOffsetFromLeft > 0) {
           const len = wallLength(front);
           const t = result.windowOffsetFromLeft;
-          return { ...o, offset: Math.min(Math.max(t, o.width / 2 + 0.05), len - o.width / 2 - 0.05) };
+          return {
+            ...o,
+            offset: Math.min(Math.max(t, o.width / 2 + 0.05), len - o.width / 2 - 0.05),
+          };
         }
         return o;
       });
@@ -120,13 +122,19 @@ function UploadPage() {
       roomActions.setPlanImage(preview);
       roomActions.setAnalysisNotes(result.notes ?? []);
       setDetected(result.detected ?? []);
-      toast.success(`Detected ${result.roomName || "room"} — ${result.widthM} × ${result.lengthM} m`);
+      toast.success(
+        format(d.upload.toastDetected, {
+          room: result.roomName || d.upload.defaultRoomName,
+          width: result.widthM,
+          length: result.lengthM,
+        }),
+      );
       navigate({ to: "/plan" });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Analysis failed";
-      if (message.includes("429")) toast.error("AI is rate limited — try again in a moment.");
-      else if (message.includes("402")) toast.error("AI credits exhausted — add credits to continue.");
-      else toast.error("Could not analyse this plan. Try a clearer image, or enter measurements manually.");
+      if (message.includes("429")) toast.error(d.upload.toastRateLimited);
+      else if (message.includes("402")) toast.error(d.upload.toastNoCredits);
+      else toast.error(d.upload.toastAnalysisFailed);
     } finally {
       setBusy(false);
     }
@@ -136,18 +144,14 @@ function UploadPage() {
     <div className="min-h-screen">
       <AppHeader current="/upload" />
       <main className="mx-auto max-w-5xl px-3 py-5 sm:px-4 sm:py-8">
-        <p className="label-mono">Option 2</p>
-        <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">Upload Your Floor Plan</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          JPG, PNG or PDF. The plan can contain walls, doors, windows, room boundaries, room
-          names, dimensions and furniture — the AI reads all of it and returns structured
-          geometry you can verify before anything is built in 3D.
-        </p>
+        <p className="label-mono">{d.upload.optionLabel}</p>
+        <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">{d.upload.title}</h1>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{d.upload.description}</p>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          {DETECTS.map((d) => (
-            <span key={d.label} className="rounded-full border bg-card px-3 py-1 text-xs">
-              {d.icon} {d.label}
+          {d.upload.detects.map((label, i) => (
+            <span key={label} className="rounded-full border bg-card px-3 py-1 text-xs">
+              {DETECT_ICONS[i]} {label}
             </span>
           ))}
         </div>
@@ -163,10 +167,8 @@ function UploadPage() {
             }}
           >
             <span className="text-3xl">📐</span>
-            <span className="mt-3 text-sm font-medium">
-              {fileName || "Drop your floor plan here, or click to browse"}
-            </span>
-            <span className="mt-1 text-xs text-muted-foreground">JPG · PNG · PDF · max 20 MB</span>
+            <span className="mt-3 text-sm font-medium">{fileName || d.upload.dropHere}</span>
+            <span className="mt-1 text-xs text-muted-foreground">{d.upload.formats}</span>
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp,application/pdf"
@@ -179,39 +181,33 @@ function UploadPage() {
           </label>
 
           <div className="rounded-xl border bg-card p-4 sm:p-5">
-            <p className="label-mono">AI analysis</p>
+            <p className="label-mono">{d.upload.analysisLabel}</p>
             <pre className="mt-3 font-mono text-xs leading-6 text-muted-foreground">
-{`2D Image
-   ↓
-AI Analysis
-   ↓
-Walls + Doors + Windows + Dimensions
-   ↓
-Structured Floor Plan`}
+              {d.upload.flowLines.join("\n   ↓\n")}
             </pre>
             {preview && (
               <img
                 src={preview}
-                alt="Uploaded floor plan preview"
+                alt={d.upload.previewAlt}
                 className="mt-4 max-h-52 w-full rounded-lg border object-contain"
               />
             )}
             {detected && (
               <ul className="mt-4 space-y-1 text-xs text-muted-foreground">
-                {detected.map((d) => (
-                  <li key={d}>✓ {d}</li>
+                {detected.map((det) => (
+                  <li key={det}>✓ {det}</li>
                 ))}
               </ul>
             )}
             <Button className="mt-5 w-full" disabled={!payload || busy} onClick={run}>
-              {busy ? "Analysing plan…" : "🤖 Analyse floor plan"}
+              {busy ? d.upload.analysing : d.upload.analyseButton}
             </Button>
             <Button
               variant="ghost"
               className="mt-2 w-full"
               onClick={() => navigate({ to: "/measurements" })}
             >
-              Enter measurements manually instead
+              {d.upload.manualInstead}
             </Button>
           </div>
         </div>

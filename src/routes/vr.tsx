@@ -2,7 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, MouseEvent } from "react";
 import { PanoramaViewer } from "@/components/vr/PanoramaViewer";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { savePanorama } from "@/lib/photos";
+import { format, useDict, type Dictionary } from "@/lib/i18n";
 import logo from "@/assets/logo.jpg";
 import "./vr.css";
 
@@ -16,7 +18,7 @@ export const Route = createFileRoute("/vr")({
 // Public n8n production webhook.
 // Example in .env.local:
 // VITE_N8N_WEBHOOK_URL=https://YOUR-N8N-TUNNEL.trycloudflare.com/webhook/panorama-redesign
-const N8N_WEBHOOK_URL = import.meta.env['VITE_N8N_WEBHOOK_URL'] as string | undefined;
+const N8N_WEBHOOK_URL = import.meta.env["VITE_N8N_WEBHOOK_URL"] as string | undefined;
 
 type PanoramaRecord = {
   id: string;
@@ -30,52 +32,55 @@ type PanoramaRecord = {
 const isDesignAvailable = (panorama: PanoramaRecord): boolean =>
   panorama.status === "completed" && Boolean(panorama.designedFilePath);
 
-const designStatusLabel = (panorama: PanoramaRecord): string => {
+const designStatusLabel = (panorama: PanoramaRecord, d: Dictionary): string => {
   if (panorama.status === "completed") {
-    return panorama.designedFilePath ? "✓ Redesign completed" : "⚠ Redesign completed";
+    return panorama.designedFilePath
+      ? d.vr.statusRedesignCompleted
+      : d.vr.statusRedesignCompletedNoFile;
   }
 
   if (panorama.status === "processing") {
-    return "⏳ Generating redesign...";
+    return d.vr.statusGenerating;
   }
 
   if (panorama.status === "failed") {
-    return "✕ Redesign failed";
+    return d.vr.statusFailed;
   }
 
-  return "⏳ Waiting for redesign...";
+  return d.vr.statusWaiting;
 };
 
-const afterPanelContent = (panorama: PanoramaRecord) => {
+const afterPanelContent = (panorama: PanoramaRecord, d: Dictionary) => {
   if (panorama.status === "processing") {
     return {
-      title: "Generating redesign…",
-      body: "The AI is working on your 360° redesign. It will appear here automatically.",
+      title: d.vr.panelGeneratingTitle,
+      body: d.vr.panelGeneratingBody,
     };
   }
 
   if (panorama.status === "failed") {
     return {
-      title: "Redesign failed",
-      body: "Something went wrong during generation. The original panorama is still available below.",
+      title: d.vr.panelFailedTitle,
+      body: d.vr.panelFailedBody,
     };
   }
 
   if (panorama.status === "completed" && !panorama.designedFilePath) {
     return {
-      title: "Redesign completed (incomplete)",
-      body: "The redesign was marked as completed but the generated file is missing. The original is still available.",
+      title: d.vr.panelIncompleteTitle,
+      body: d.vr.panelIncompleteBody,
     };
   }
 
   return {
-    title: "Waiting for redesign…",
-    body: "It will appear here automatically once the AI generation is completed.",
+    title: d.vr.waitingTitle,
+    body: d.vr.waitingBody,
   };
 };
 
 function VrPage() {
   const search = Route.useSearch();
+  const d = useDict();
   const [panoramas, setPanoramas] = useState<PanoramaRecord[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [viewMode, setViewMode] = useState<"after" | "split" | "before">("after");
@@ -111,7 +116,7 @@ function VrPage() {
         newest.id !== lastNewestIdRef.current
       ) {
         setSelectedIndex(0);
-        setNewImageMessage("New 360 panorama received ✓");
+        setNewImageMessage(d.vr.newPanoramaReceived);
         setTimeout(() => {
           setNewImageMessage("");
         }, 5000);
@@ -164,7 +169,7 @@ function VrPage() {
       event.target.value = "";
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Panorama upload failed. Check the server terminal.");
+      alert(d.vr.alertUploadFailed);
     } finally {
       setUploading(false);
     }
@@ -172,15 +177,13 @@ function VrPage() {
 
   const handleGenerate360Direct = async () => {
     if (!N8N_WEBHOOK_URL) {
-      alert(
-        "Missing VITE_N8N_WEBHOOK_URL. Add the public n8n webhook URL to .env.local and restart the frontend.",
-      );
+      alert(d.vr.alertMissingWebhook);
       return;
     }
 
     try {
       setIsGenerating360(true);
-      setNewImageMessage("Generating 360 panorama...");
+      setNewImageMessage(d.vr.generatingMessage);
 
       const payload = {
         projectId: "project_4",
@@ -223,15 +226,15 @@ function VrPage() {
       });
 
       setViewMode("after");
-      setNewImageMessage("New 360 panorama generated ✓");
+      setNewImageMessage(d.vr.newPanoramaGenerated);
       setTimeout(() => setNewImageMessage(""), 5000);
     } catch (error) {
       console.error("Direct 360 generation error:", error);
       setNewImageMessage("");
       alert(
         error instanceof Error
-          ? `360 generation failed: ${error.message}`
-          : "360 generation failed. Check n8n / ai360 / ComfyUI.",
+          ? format(d.vr.alertGenerationFailedWithReason, { reason: error.message })
+          : d.vr.alertGenerationFailed,
       );
     } finally {
       setIsGenerating360(false);
@@ -241,7 +244,7 @@ function VrPage() {
   const current = panoramas.length ? panoramas[selectedIndex] : undefined;
   const storedDesignAvailable = current ? isDesignAvailable(current) : false;
   const designAvailable = Boolean(generatedPanoramaUrl) || storedDesignAvailable;
-  const afterContent = current ? afterPanelContent(current) : undefined;
+  const afterContent = current ? afterPanelContent(current, d) : undefined;
 
   const previousPanorama = () => {
     if (!panoramas.length) return;
@@ -259,7 +262,7 @@ function VrPage() {
 
   const deletePanorama = async (event: MouseEvent, panorama: PanoramaRecord) => {
     event.stopPropagation();
-    if (!window.confirm("Delete this panorama?")) return;
+    if (!window.confirm(d.vr.confirmDelete)) return;
 
     try {
       const response = await fetch(`/api/panoramas/${encodeURIComponent(panorama.id)}`, {
@@ -270,7 +273,7 @@ function VrPage() {
       await loadPanoramas(false);
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Delete failed.");
+      alert(d.vr.alertDeleteFailed);
     }
   };
 
@@ -289,54 +292,70 @@ function VrPage() {
   return (
     <div className="app">
       <header className="topbar">
-        <Link to="/" className="brand-link" title="Back to home page">
+        <Link to="/" className="brand-link" title={d.vr.backToHome}>
           <img src={logo} alt="Roomcast Studio" className="brand-logo" />
           <span>Roomcast Studio</span>
         </Link>
         <div className="topbar-actions">
-          <div className="view-toggle" style={{ display: 'flex', gap: '4px', background: 'var(--color-secondary)', padding: '4px', borderRadius: '8px' }}>
+          <div
+            className="view-toggle"
+            style={{
+              display: "flex",
+              gap: "4px",
+              background: "var(--color-secondary)",
+              padding: "4px",
+              borderRadius: "8px",
+            }}
+          >
             <button
               type="button"
               onClick={() => setViewMode("after")}
               style={{
-                border: 'none',
-                borderRadius: '6px',
-                padding: '6px 12px',
-                fontSize: '12px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                background: viewMode === "after" ? 'var(--color-primary)' : 'transparent',
-                color: viewMode === "after" ? 'var(--color-primary-foreground)' : 'var(--color-muted-foreground)',
-                transition: 'all 0.15s ease',
+                border: "none",
+                borderRadius: "6px",
+                padding: "6px 12px",
+                fontSize: "12px",
+                fontWeight: "600",
+                cursor: "pointer",
+                background: viewMode === "after" ? "var(--color-primary)" : "transparent",
+                color:
+                  viewMode === "after"
+                    ? "var(--color-primary-foreground)"
+                    : "var(--color-muted-foreground)",
+                transition: "all 0.15s ease",
               }}
             >
-              ✨ After (AI Redesign)
+              {d.vr.afterMode}
             </button>
             <button
               type="button"
               onClick={() => setViewMode("split")}
               style={{
-                border: 'none',
-                borderRadius: '6px',
-                padding: '6px 12px',
-                fontSize: '12px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                background: viewMode === "split" ? 'var(--color-primary)' : 'transparent',
-                color: viewMode === "split" ? 'var(--color-primary-foreground)' : 'var(--color-muted-foreground)',
-                transition: 'all 0.15s ease',
+                border: "none",
+                borderRadius: "6px",
+                padding: "6px 12px",
+                fontSize: "12px",
+                fontWeight: "600",
+                cursor: "pointer",
+                background: viewMode === "split" ? "var(--color-primary)" : "transparent",
+                color:
+                  viewMode === "split"
+                    ? "var(--color-primary-foreground)"
+                    : "var(--color-muted-foreground)",
+                transition: "all 0.15s ease",
               }}
             >
-              Split View
+              {d.vr.splitMode}
             </button>
           </div>
+          <LanguageSwitcher />
           <button
             type="button"
             className="upload-btn"
             disabled={isGenerating360}
             onClick={handleGenerate360Direct}
           >
-            {isGenerating360 ? "Generating 360..." : "✨ Generate 360 Direct"}
+            {isGenerating360 ? d.vr.generating360 : d.vr.generateDirect}
           </button>
 
           <button
@@ -345,7 +364,7 @@ function VrPage() {
             disabled={uploading}
             onClick={() => fileInputRef.current?.click()}
           >
-            {uploading ? "Uploading..." : "+ Upload Panorama"}
+            {uploading ? d.vr.uploading : d.vr.uploadPanorama}
           </button>
         </div>
         <input
@@ -358,8 +377,8 @@ function VrPage() {
         />
       </header>
 
-      {uploading && <div className="processing">Saving panorama...</div>}
-      {isGenerating360 && <div className="processing">AI is generating your 360 panorama...</div>}
+      {uploading && <div className="processing">{d.vr.processingSaving}</div>}
+      {isGenerating360 && <div className="processing">{d.vr.processingGenerating}</div>}
       {newImageMessage && <div className="processing">{newImageMessage}</div>}
 
       <div className="thumbnails">
@@ -371,13 +390,13 @@ function VrPage() {
           >
             <img src={panorama.filePath} alt="" />
             <div className="thumbnail-info">
-              <strong>Panorama {index + 1}</strong>
-              <span>{designStatusLabel(panorama)}</span>
+              <strong>{format(d.vr.panoramaN, { n: index + 1 })}</strong>
+              <span>{designStatusLabel(panorama, d)}</span>
             </div>
             <button
               type="button"
               className="delete-image"
-              title="Delete panorama"
+              title={d.vr.deleteTitle}
               onClick={(event) => deletePanorama(event, panorama)}
             >
               🗑
@@ -388,10 +407,13 @@ function VrPage() {
 
       <main className="viewer-area">
         {current ? (
-          <div className={`viewer-panels ${viewMode === "after" ? "single-view-after" : viewMode === "before" ? "single-view-before" : "split-view"}`} style={{ display: 'flex', gap: '20px', width: '100%' }}>
+          <div
+            className={`viewer-panels ${viewMode === "after" ? "single-view-after" : viewMode === "before" ? "single-view-before" : "split-view"}`}
+            style={{ display: "flex", gap: "20px", width: "100%" }}
+          >
             {(viewMode === "before" || viewMode === "split") && (
               <div className="viewer-wrapper" style={{ flex: 1, minWidth: 0 }}>
-                <div className="panel-label">BEFORE — Original Panorama</div>
+                <div className="panel-label">{d.vr.beforePanel}</div>
                 <PanoramaViewer
                   imageUrl={current.filePath}
                   vrButtonId="vr-before"
@@ -401,7 +423,8 @@ function VrPage() {
                       ? current.designedFilePath
                       : null)
                   }
-                  toggleLabel="AFTER"
+                  toggleLabel={d.vr.toggleAfter}
+                  toggleBackLabel={d.vr.toggleBefore}
                 />
                 <div className="panel-top-controls">
                   <button
@@ -410,7 +433,7 @@ function VrPage() {
                       openFullscreen(event.currentTarget.closest(".viewer-wrapper") as HTMLElement)
                     }
                   >
-                    ⛶ Fullscreen
+                    {d.vr.fullscreen}
                   </button>
                 </div>
               </div>
@@ -418,21 +441,24 @@ function VrPage() {
 
             {(viewMode === "after" || viewMode === "split") && (
               <div className="viewer-wrapper" style={{ flex: 1, minWidth: 0 }}>
-                <div className="panel-label">AFTER — AI Designed Panorama</div>
+                <div className="panel-label">{d.vr.afterPanel}</div>
                 {generatedPanoramaUrl || (storedDesignAvailable && current.designedFilePath) ? (
                   <PanoramaViewer
                     imageUrl={generatedPanoramaUrl ?? current.designedFilePath!}
                     vrButtonId="vr-after"
                     alternateImageUrl={current.filePath}
-                    toggleLabel="BEFORE"
+                    toggleLabel={d.vr.toggleBefore}
+                    toggleBackLabel={d.vr.toggleAfter}
                   />
                 ) : (
                   <div className="after-placeholder">
                     <div className="spinner" />
-                    <strong>{afterContent?.title ?? "Waiting for redesign…"}</strong>
+                    <strong>{afterContent?.title ?? d.vr.waitingTitle}</strong>
                     <p>{afterContent?.body ?? ""}</p>
                     <p>
-                      You can still <em>Enter VR</em> with the original panorama.
+                      {d.vr.enterVrAnywayA}
+                      <em>{d.vr.enterVrAnywayEm}</em>
+                      {d.vr.enterVrAnywayB}
                     </p>
                   </div>
                 )}
@@ -443,7 +469,7 @@ function VrPage() {
                       openFullscreen(event.currentTarget.closest(".viewer-wrapper") as HTMLElement)
                     }
                   >
-                    ⛶ Fullscreen
+                    {d.vr.fullscreen}
                   </button>
                 </div>
               </div>
@@ -460,24 +486,23 @@ function VrPage() {
               </>
             )}
 
-            <div className="viewer-help">
-              Drag to look around • Mouse wheel to zoom • ENTER VR for headset
-            </div>
+            <div className="viewer-help">{d.vr.helpText}</div>
           </div>
         ) : generatedPanoramaUrl ? (
           <div className="viewer-wrapper" style={{ width: "100%", minWidth: 0 }}>
-            <div className="panel-label">AI GENERATED 360 PANORAMA</div>
+            <div className="panel-label">{d.vr.generatedPanel}</div>
             <PanoramaViewer
               imageUrl={generatedPanoramaUrl}
               vrButtonId="vr-generated-direct"
               alternateImageUrl={null}
-              toggleLabel="BEFORE"
+              toggleLabel={d.vr.toggleBefore}
+              toggleBackLabel={d.vr.toggleAfter}
             />
           </div>
         ) : (
           <div className="empty-viewer">
-            <h2>Waiting for panorama...</h2>
-            <p>Upload a panorama or generate a new 360 test.</p>
+            <h2>{d.vr.emptyTitle}</h2>
+            <p>{d.vr.emptyBody}</p>
           </div>
         )}
       </main>
@@ -486,14 +511,17 @@ function VrPage() {
         <div className="bottom-info">
           <strong>
             {current
-              ? `Panorama ${selectedIndex + 1} / ${panoramas.length}`
-              : "Direct AI Panorama"}
+              ? format(d.vr.counterPanorama, {
+                  index: selectedIndex + 1,
+                  total: panoramas.length,
+                })
+              : d.vr.directAiPanorama}
           </strong>
           <span className={designAvailable ? "ai-status" : undefined}>
             {generatedPanoramaUrl
-              ? "✓ Direct AI result ready"
+              ? d.vr.directResultReady
               : current
-                ? designStatusLabel(current)
+                ? designStatusLabel(current, d)
                 : ""}
           </span>
         </div>

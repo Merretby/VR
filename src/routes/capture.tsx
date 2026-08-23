@@ -4,7 +4,19 @@ import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { saveCapturedPhotos, saveVisionBoard, createProject } from "@/lib/photos";
 import { getActiveProjectId, setActiveProjectId } from "@/lib/project-store";
-import { Check, CheckCircle2, ImagePlus, Loader2, Plus, Sparkles, Trash2, Camera, ArrowRight, ArrowLeft } from "lucide-react";
+import { format, useDict } from "@/lib/i18n";
+import {
+  Check,
+  CheckCircle2,
+  ImagePlus,
+  Loader2,
+  Plus,
+  Sparkles,
+  Trash2,
+  Camera,
+  ArrowRight,
+  ArrowLeft,
+} from "lucide-react";
 import { toast } from "sonner";
 import moodboardDefault from "@/assets/moodboards/moodbord.jpg";
 import moodboard1 from "@/assets/moodboards/moodbord-1.jpg";
@@ -16,7 +28,8 @@ export const Route = createFileRoute("/capture")({
       { title: "Capture & Redesign Room — Roomcast Studio" },
       {
         name: "description",
-        content: "Take photos of your room, select the best shots, choose your interior moodboard, and experience your 360° AI redesign in VR.",
+        content:
+          "Take photos of your room, select the best shots, choose your interior moodboard, and experience your 360° AI redesign in VR.",
       },
     ],
   }),
@@ -25,40 +38,22 @@ export const Route = createFileRoute("/capture")({
 
 type Phase = "camera" | "select" | "moodboard";
 
+type MoodboardKey = "luxury-warmth" | "japandi-minimal" | "contemporary-chic";
+
 interface MoodboardOption {
-  id: string;
-  name: string;
-  subtitle: string;
+  id: MoodboardKey;
   image: string;
-  tags: string[];
 }
 
 const MOODBOARDS: MoodboardOption[] = [
-  {
-    id: "luxury-warmth",
-    name: "Modern Luxury & Warm Elegance",
-    subtitle: "Warm amber lighting, marble accents, rich walnut wood, and plush editorial seating.",
-    image: moodboardDefault,
-    tags: ["Warm Wood", "Marble", "Ambient Light", "Editorial"],
-  },
-  {
-    id: "japandi-minimal",
-    name: "Japandi & Organic Minimalist",
-    subtitle: "Clean lines, light oak, earthy neutral tones, textured linen, and airy open spaces.",
-    image: moodboard1,
-    tags: ["Light Oak", "Linen", "Minimalist", "Serene"],
-  },
-  {
-    id: "contemporary-chic",
-    name: "Contemporary Architectural Chic",
-    subtitle: "Sleek sculptural furniture, soft matte brass, neutral boucle, and curated gallery decor.",
-    image: moodboard2,
-    tags: ["Bouclé", "Matte Brass", "Architectural", "Sculptural"],
-  },
+  { id: "luxury-warmth", image: moodboardDefault },
+  { id: "japandi-minimal", image: moodboard1 },
+  { id: "contemporary-chic", image: moodboard2 },
 ];
 
 function CapturePage() {
   const navigate = useNavigate();
+  const d = useDict();
   const [phase, setPhase] = useState<Phase>("camera");
   const [photos, setPhotos] = useState<string[]>([]);
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
@@ -69,6 +64,8 @@ function CapturePage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraErrorMessageRef = useRef(d.capture.cameraError);
+  cameraErrorMessageRef.current = d.capture.cameraError;
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isFlashActive, setIsFlashActive] = useState(false);
   const projectIdRef = useRef<string>("default-project");
@@ -106,7 +103,10 @@ function CapturePage() {
 
     let cancelled = false;
     navigator.mediaDevices
-      ?.getUserMedia({ video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false })
+      ?.getUserMedia({
+        video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false,
+      })
       .then((stream) => {
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
@@ -119,7 +119,7 @@ function CapturePage() {
         setCameraError(null);
       })
       .catch(() => {
-        setCameraError("Camera permission not granted or unavailable. You can upload photos directly below.");
+        setCameraError(cameraErrorMessageRef.current);
       });
 
     return () => {
@@ -156,7 +156,7 @@ function CapturePage() {
       return updated;
     });
 
-    toast.success(`Photo #${photos.length + 1} captured!`);
+    toast.success(format(d.capture.toastPhotoCaptured, { n: photos.length + 1 }));
   };
 
   // Batch file upload handler
@@ -180,7 +180,7 @@ function CapturePage() {
             setSelectedIndices(new Set(updated.map((_, i) => i)));
             return updated;
           });
-          toast.success(`Added ${newPhotos.length} photos!`);
+          toast.success(format(d.capture.toastPhotosAdded, { count: newPhotos.length }));
         }
       };
       reader.readAsDataURL(file);
@@ -222,12 +222,12 @@ function CapturePage() {
   const handleSaveSelectedPhotos = async () => {
     const selectedList = photos.filter((_, i) => selectedIndices.has(i));
     if (!selectedList.length) {
-      toast.error("Please select at least one photo to continue.");
+      toast.error(d.capture.toastSelectAtLeastOne);
       return;
     }
 
     setIsSaving(true);
-    setSavingMessage(`Saving ${selectedList.length} photos to database…`);
+    setSavingMessage(format(d.capture.savingPhotos, { count: selectedList.length }));
 
     try {
       await saveCapturedPhotos({
@@ -236,11 +236,11 @@ function CapturePage() {
           photos: selectedList,
         },
       });
-      toast.success(`${selectedList.length} photos saved to database ✓`);
+      toast.success(format(d.capture.toastPhotosSaved, { count: selectedList.length }));
       setPhase("moodboard");
     } catch (error) {
       console.error("Failed to save photos to database:", error);
-      toast.error("Photos could not be saved to the database. Continuing to moodboard.");
+      toast.error(d.capture.toastSaveFailed);
       setPhase("moodboard");
     } finally {
       setIsSaving(false);
@@ -250,9 +250,10 @@ function CapturePage() {
 
   // Step 3: Choose moodboard & redirect to /vr
   const handleSelectMoodboard = async (moodboard: MoodboardOption) => {
+    const moodboardName = d.capture.moodboards[moodboard.id].name;
     setSelectedMoodboard(moodboard.id);
     setIsSaving(true);
-    setSavingMessage(`Applying ${moodboard.name}…`);
+    setSavingMessage(format(d.capture.applying, { name: moodboardName }));
 
     try {
       // Convert asset image URL to base64 if needed or send direct image path
@@ -270,7 +271,7 @@ function CapturePage() {
               moodboardId: moodboard.id,
             },
           });
-          toast.success("Moodboard saved! Entering 360° VR View…");
+          toast.success(d.capture.toastMoodboardSaved);
           navigate({ to: "/vr" });
         } catch (err) {
           console.error("Vision board save failed:", err);
@@ -307,10 +308,12 @@ function CapturePage() {
           <div className="space-y-5">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="label-mono">Step 1 of 2 · Room Photography</p>
-                <h1 className="mt-1 text-2xl font-semibold sm:text-3xl font-serif">Capture Your Room</h1>
+                <p className="label-mono">{d.capture.step1Label}</p>
+                <h1 className="mt-1 text-2xl font-semibold sm:text-3xl font-serif">
+                  {d.capture.step1Title}
+                </h1>
                 <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                  Snap multiple pictures from different angles of your room. Take as many as you need!
+                  {d.capture.step1Desc}
                 </p>
               </div>
 
@@ -320,7 +323,8 @@ function CapturePage() {
                   className="mt-2 shadow-md sm:mt-0 font-medium"
                   onClick={() => setPhase("select")}
                 >
-                  Review & Select ({photos.length}) <ArrowRight className="ml-2 h-4 w-4" />
+                  {d.capture.reviewAndSelect} ({photos.length}){" "}
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
             </div>
@@ -336,7 +340,9 @@ function CapturePage() {
               />
 
               {/* Shutter Flash */}
-              {isFlashActive && <div className="absolute inset-0 bg-white opacity-80 transition-opacity" />}
+              {isFlashActive && (
+                <div className="absolute inset-0 bg-white opacity-80 transition-opacity" />
+              )}
 
               {/* Viewfinder Grid Overlay */}
               <div className="pointer-events-none absolute inset-4 sm:inset-8 rounded-xl border border-white/20">
@@ -355,7 +361,10 @@ function CapturePage() {
 
               {/* Floating Counter Badge */}
               <div className="absolute top-4 left-4 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-                📸 {photos.length} {photos.length === 1 ? "photo" : "photos"} taken
+                📸{" "}
+                {format(photos.length === 1 ? d.capture.photosTaken : d.capture.photosTakenPlural, {
+                  count: photos.length,
+                })}
               </div>
 
               {/* Camera Action Toolbar */}
@@ -367,14 +376,14 @@ function CapturePage() {
                   className="rounded-full bg-white/20 text-white backdrop-blur hover:bg-white/30"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <ImagePlus className="mr-2 h-4 w-4" /> Upload
+                  <ImagePlus className="mr-2 h-4 w-4" /> {d.capture.upload}
                 </Button>
 
                 <button
                   type="button"
                   onClick={handleSnapPhoto}
                   className="group relative flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-white/30 backdrop-blur transition-transform active:scale-95 hover:bg-white/50"
-                  title="Snap Photo"
+                  title={d.capture.snapPhoto}
                 >
                   <span className="h-12 w-12 rounded-full bg-white transition-transform group-hover:scale-95" />
                 </button>
@@ -386,7 +395,7 @@ function CapturePage() {
                     className="rounded-full font-medium"
                     onClick={() => setPhase("select")}
                   >
-                    Done <ArrowRight className="ml-1 h-4 w-4" />
+                    {d.capture.done} <ArrowRight className="ml-1 h-4 w-4" />
                   </Button>
                 )}
               </div>
@@ -413,7 +422,7 @@ function CapturePage() {
               <div className="space-y-2 rounded-xl border bg-card p-3 sm:p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Captured Photos ({photos.length}) — Click photo to remove
+                    {format(d.capture.capturedPhotos, { count: photos.length })}
                   </span>
                   <Button
                     variant="ghost"
@@ -421,7 +430,7 @@ function CapturePage() {
                     className="text-xs text-destructive hover:bg-destructive/10"
                     onClick={() => setPhotos([])}
                   >
-                    Clear All
+                    {d.capture.clearAll}
                   </Button>
                 </div>
 
@@ -431,9 +440,13 @@ function CapturePage() {
                       key={i}
                       className="group relative h-20 w-20 flex-shrink-0 cursor-pointer overflow-hidden rounded-lg border bg-black shadow-sm"
                       onClick={() => handleRemovePhoto(i)}
-                      title="Click to remove"
+                      title={d.capture.clickToRemove}
                     >
-                      <img src={src} alt={`Shot ${i + 1}`} className="h-full w-full object-cover transition-opacity group-hover:opacity-40" />
+                      <img
+                        src={src}
+                        alt={format(d.capture.shotAlt, { n: i + 1 })}
+                        className="h-full w-full object-cover transition-opacity group-hover:opacity-40"
+                      />
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Trash2 className="h-5 w-5 text-destructive drop-shadow" />
                       </div>
@@ -455,16 +468,18 @@ function CapturePage() {
           <div className="space-y-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="label-mono">Step 2 of 2 · Select Best Photos</p>
-                <h1 className="mt-1 text-2xl font-semibold sm:text-3xl font-serif">Select Photos for 3D Model</h1>
+                <p className="label-mono">{d.capture.step2Label}</p>
+                <h1 className="mt-1 text-2xl font-semibold sm:text-3xl font-serif">
+                  {d.capture.step2Title}
+                </h1>
                 <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                  Choose the clear photos of your walls and space. Only selected photos will be saved to your database.
+                  {d.capture.step2Desc}
                 </p>
               </div>
 
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setPhase("camera")}>
-                  <Plus className="mr-1.5 h-4 w-4" /> Add More
+                  <Plus className="mr-1.5 h-4 w-4" /> {d.capture.addMore}
                 </Button>
                 <Button
                   size="sm"
@@ -474,7 +489,9 @@ function CapturePage() {
                     else setSelectedIndices(new Set(photos.map((_, i) => i)));
                   }}
                 >
-                  {selectedIndices.size === photos.length ? "Deselect All" : "Select All"}
+                  {selectedIndices.size === photos.length
+                    ? d.capture.deselectAll
+                    : d.capture.selectAll}
                 </Button>
               </div>
             </div>
@@ -493,19 +510,25 @@ function CapturePage() {
                         : "border-border opacity-60 hover:opacity-100"
                     }`}
                   >
-                    <img src={src} alt={`Room photo ${idx + 1}`} className="h-full w-full object-cover" />
+                    <img
+                      src={src}
+                      alt={format(d.capture.photoAlt, { n: idx + 1 })}
+                      className="h-full w-full object-cover"
+                    />
 
                     {/* Selection Badge */}
                     <div
                       className={`absolute top-2.5 right-2.5 flex h-7 w-7 items-center justify-center rounded-full border shadow ${
-                        isSelected ? "bg-primary text-primary-foreground border-primary" : "bg-black/60 text-white/60 border-white/30"
+                        isSelected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-black/60 text-white/60 border-white/30"
                       }`}
                     >
                       <Check className="h-4 w-4" />
                     </div>
 
                     <div className="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-0.5 text-xs font-medium text-white backdrop-blur">
-                      Photo #{idx + 1}
+                      {format(d.capture.photoBadge, { n: idx + 1 })}
                     </div>
                   </div>
                 );
@@ -515,19 +538,24 @@ function CapturePage() {
             {/* Sticky Action Footer */}
             <div className="sticky bottom-4 rounded-2xl border bg-card/95 p-4 shadow-xl backdrop-blur flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="text-sm font-medium">
-                <span className="text-primary font-bold">{selectedIndices.size}</span> of {photos.length} photos selected
+                <span className="text-primary font-bold">{selectedIndices.size}</span>{" "}
+                {d.capture.photosSelectedOf} {photos.length} {d.capture.photosSelectedUnit}
               </div>
 
               <div className="flex gap-2 w-full sm:w-auto">
-                <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => setPhase("camera")}>
-                  <ArrowLeft className="mr-1.5 h-4 w-4" /> Back to Camera
+                <Button
+                  variant="outline"
+                  className="flex-1 sm:flex-none"
+                  onClick={() => setPhase("camera")}
+                >
+                  <ArrowLeft className="mr-1.5 h-4 w-4" /> {d.capture.backToCamera}
                 </Button>
                 <Button
                   className="flex-1 sm:flex-none font-medium"
                   disabled={selectedIndices.size === 0 || isSaving}
                   onClick={handleSaveSelectedPhotos}
                 >
-                  {isSaving ? "Saving to Database…" : "Save & Choose Moodboard ➔"}
+                  {isSaving ? d.capture.savingToDatabase : d.capture.saveAndChooseMoodboard}
                 </Button>
               </div>
             </div>
@@ -540,34 +568,39 @@ function CapturePage() {
         {phase === "moodboard" && (
           <div className="space-y-6">
             <div>
-              <p className="label-mono">Final Step · Style & Atmosphere</p>
-              <h1 className="mt-1 text-2xl font-semibold sm:text-3xl font-serif">Choose Your Moodboard</h1>
+              <p className="label-mono">{d.capture.finalStepLabel}</p>
+              <h1 className="mt-1 text-2xl font-semibold sm:text-3xl font-serif">
+                {d.capture.chooseMoodboardTitle}
+              </h1>
               <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                Pick your preferred interior design aesthetic. Selecting a moodboard will save it and generate your 360° redesign.
+                {d.capture.chooseMoodboardDesc}
               </p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
               {MOODBOARDS.map((mb) => {
+                const mbT = d.capture.moodboards[mb.id];
                 const isSelected = selectedMoodboard === mb.id;
                 return (
                   <div
                     key={mb.id}
                     onClick={() => !isSaving && handleSelectMoodboard(mb)}
                     className={`group relative flex flex-col overflow-hidden rounded-2xl border-2 bg-card transition-all cursor-pointer hover:shadow-xl ${
-                      isSelected ? "border-primary ring-4 ring-primary/20 scale-[1.02]" : "border-border hover:border-primary/50"
+                      isSelected
+                        ? "border-primary ring-4 ring-primary/20 scale-[1.02]"
+                        : "border-border hover:border-primary/50"
                     }`}
                   >
                     <div className="relative aspect-[16/10] overflow-hidden bg-muted">
                       <img
                         src={mb.image}
-                        alt={mb.name}
+                        alt={mbT.name}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       {isSelected && (
                         <div className="absolute inset-0 flex items-center justify-center bg-primary/20 backdrop-blur-[2px]">
                           <div className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground shadow">
-                            <CheckCircle2 className="h-4 w-4" /> Selected
+                            <CheckCircle2 className="h-4 w-4" /> {d.capture.selected}
                           </div>
                         </div>
                       )}
@@ -575,14 +608,14 @@ function CapturePage() {
 
                     <div className="flex flex-1 flex-col p-4 sm:p-5">
                       <h3 className="text-base font-semibold font-serif group-hover:text-primary transition-colors">
-                        {mb.name}
+                        {mbT.name}
                       </h3>
                       <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed flex-1">
-                        {mb.subtitle}
+                        {mbT.subtitle}
                       </p>
 
                       <div className="mt-4 flex flex-wrap gap-1.5">
-                        {mb.tags.map((tag) => (
+                        {mbT.tags.map((tag) => (
                           <span
                             key={tag}
                             className="rounded-md bg-secondary/80 px-2 py-0.5 text-[10px] font-medium text-secondary-foreground"
@@ -597,7 +630,7 @@ function CapturePage() {
                         variant={isSelected ? "default" : "outline"}
                         disabled={isSaving}
                       >
-                        <Sparkles className="mr-1.5 h-4 w-4" /> Apply & Experience in VR
+                        <Sparkles className="mr-1.5 h-4 w-4" /> {d.capture.applyAndExperience}
                       </Button>
                     </div>
                   </div>

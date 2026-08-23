@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import heroBefore from "@/assets/hero-before.png";
 import heroAfter from "@/assets/hero-after.png";
 import { generateHeroImages, type HeroImages } from "@/lib/ai.functions";
+import { useDict } from "@/lib/i18n";
 
 interface BeforeAfterSliderProps {
   beforeImage?: string;
@@ -17,6 +18,7 @@ export function BeforeAfterSlider({
   className = "",
   aspectRatio = "aspect-[16/10] sm:aspect-[16/9]",
 }: BeforeAfterSliderProps) {
+  const d = useDict();
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const [heroImages, setHeroImages] = useState<HeroImages | null>(null);
@@ -94,11 +96,9 @@ export function BeforeAfterSlider({
     >
       <div className="flex items-center justify-between px-1 pb-3">
         <span className="font-serif text-lg font-medium tracking-tight sm:text-xl">
-          Before / After
+          {d.slider.title}
         </span>
-        <span className="label-mono text-[10px] text-muted-foreground">
-          Drag slider to reveal design
-        </span>
+        <span className="label-mono text-[10px] text-muted-foreground">{d.slider.hint}</span>
       </div>
 
       <div
@@ -116,7 +116,7 @@ export function BeforeAfterSlider({
         {/* AFTER Image (Full background) */}
         <img
           src={afterImage}
-          alt="After — Furnished Luxury Interior"
+          alt={d.slider.altAfter}
           className="absolute inset-0 h-full w-full object-cover object-center"
           draggable={false}
         />
@@ -130,7 +130,7 @@ export function BeforeAfterSlider({
         >
           <img
             src={beforeImage}
-            alt="Before — Empty Room Architecture"
+            alt={d.slider.altBefore}
             className="absolute inset-0 h-full w-full object-cover object-center"
             draggable={false}
           />
@@ -148,10 +148,10 @@ export function BeforeAfterSlider({
 
         {/* Floating Badges */}
         <div className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/60 backdrop-blur-md px-2.5 py-1 text-[11px] font-medium text-white shadow-xs">
-          Before
+          {d.slider.before}
         </div>
         <div className="pointer-events-none absolute bottom-3 right-3 rounded-md bg-black/60 backdrop-blur-md px-2.5 py-1 text-[11px] font-medium text-white shadow-xs">
-          After
+          {d.slider.after}
         </div>
       </div>
 
@@ -163,12 +163,12 @@ export function BeforeAfterSlider({
           max="100"
           value={sliderPosition}
           onChange={(e) => setSliderPosition(Number(e.target.value))}
-          aria-label="Before / After room transition slider"
+          aria-label={d.slider.ariaLabel}
           className="w-full h-2 rounded-lg bg-secondary appearance-none cursor-pointer accent-primary focus:outline-none"
         />
         <div className="mt-1.5 flex justify-between font-mono text-[10px] text-muted-foreground">
-          <span>0% (Empty Architecture)</span>
-          <span>100% (Furnished Design)</span>
+          <span>{d.slider.emptyArchitecture}</span>
+          <span>{d.slider.furnishedDesign}</span>
         </div>
       </div>
     </div>

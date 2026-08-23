@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { buildFloorPlan, type Opening } from "@/lib/room-model";
 import { roomActions, useRoomProject } from "@/lib/room-store";
+import { format, useDict } from "@/lib/i18n";
 
 export const Route = createFileRoute("/measurements")({
   head: () => ({
@@ -28,23 +29,24 @@ export const Route = createFileRoute("/measurements")({
   component: MeasurementsPage,
 });
 
-const FIELDS = [
-  { key: "widthM", label: "Room Width", hint: "Left wall to right wall", step: 0.05 },
-  { key: "lengthM", label: "Room Length", hint: "Front wall to back wall", step: 0.05 },
-  { key: "heightM", label: "Ceiling Height", hint: "Floor to ceiling", step: 0.05 },
-  { key: "doorWidth", label: "Door Width", hint: "On the back wall", step: 0.05 },
-  { key: "doorHeight", label: "Door Height", hint: "On the back wall", step: 0.05 },
-  { key: "windowWidth", label: "Window Width", hint: "On the front wall", step: 0.05 },
-  { key: "windowHeight", label: "Window Height", hint: "On the front wall", step: 0.05 },
-  { key: "windowSill", label: "Window Sill Height", hint: "Optional — floor to sill", step: 0.05 },
-  { key: "wallThickness", label: "Wall Thickness", hint: "Optional", step: 0.01 },
+const FIELD_KEYS = [
+  "widthM",
+  "lengthM",
+  "heightM",
+  "doorWidth",
+  "doorHeight",
+  "windowWidth",
+  "windowHeight",
+  "windowSill",
+  "wallThickness",
 ] as const;
 
-type FieldKey = (typeof FIELDS)[number]["key"];
+type FieldKey = (typeof FIELD_KEYS)[number];
 
 function MeasurementsPage() {
   const project = useRoomProject();
   const navigate = useNavigate();
+  const d = useDict();
   const existingDoor = project.plan.openings.find((o) => o.type === "door");
   const existingWindow = project.plan.openings.find((o) => o.type === "window");
 
@@ -107,57 +109,59 @@ function MeasurementsPage() {
     <div className="min-h-screen">
       <AppHeader current="/measurements" />
       <main className="mx-auto max-w-5xl px-3 py-5 sm:px-4 sm:py-8">
-        <p className="label-mono">Step 7 · Room data</p>
-        <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">Room Measurements</h1>
+        <p className="label-mono">{d.measurements.stepLabel}</p>
+        <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">{d.measurements.title}</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           {photoCount === 6
-            ? "All six surfaces captured. Now give the real dimensions so the reconstruction is to scale."
-            : `${photoCount} of 6 surface photos captured. Enter the real dimensions to continue.`}{" "}
-          All values are in metres.
+            ? d.measurements.introAll
+            : format(d.measurements.introPartial, { count: photoCount })}{" "}
+          {d.measurements.introScale} {d.measurements.introMetres}
         </p>
 
         <div className="mt-5 grid gap-5 sm:mt-8 sm:gap-6 lg:grid-cols-[1.4fr_1fr]">
           <div className="grid gap-4 sm:grid-cols-2">
-            {FIELDS.map((f) => (
-              <div key={f.key} className="space-y-1.5">
-                <Label htmlFor={f.key} className="text-xs">
-                  {f.label}
+            {FIELD_KEYS.map((key) => (
+              <div key={key} className="space-y-1.5">
+                <Label htmlFor={key} className="text-xs">
+                  {d.measurements.fields[key].label}
                 </Label>
                 <div className="relative">
                   <Input
-                    id={f.key}
+                    id={key}
                     type="number"
                     inputMode="decimal"
-                    step={f.step}
+                    step={0.05}
                     min={0}
-                    value={values[f.key]}
-                    onChange={(e) => update(f.key, e.target.value)}
+                    value={values[key]}
+                    onChange={(e) => update(key, e.target.value)}
                     className="font-mono pr-8"
                   />
                   <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-muted-foreground">
                     m
                   </span>
                 </div>
-                <p className="text-[11px] text-muted-foreground">{f.hint}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {d.measurements.fields[key].hint}
+                </p>
               </div>
             ))}
           </div>
 
           <aside className="h-fit rounded-xl border bg-card p-4 sm:p-5">
-            <p className="label-mono">Summary</p>
+            <p className="label-mono">{d.measurements.summaryLabel}</p>
             <pre className="mt-3 overflow-x-auto font-mono text-xs leading-6 text-muted-foreground">
-{`Room Width:      ${values.widthM.toFixed(2)} m
-Room Length:     ${values.lengthM.toFixed(2)} m
-Ceiling Height:  ${values.heightM.toFixed(2)} m
-Door Width:      ${values.doorWidth.toFixed(2)} m
-Door Height:     ${values.doorHeight.toFixed(2)} m
-Window Width:    ${values.windowWidth.toFixed(2)} m
-Window Height:   ${values.windowHeight.toFixed(2)} m
-Floor Area:      ${(values.widthM * values.lengthM).toFixed(2)} m²
-Volume:          ${(values.widthM * values.lengthM * values.heightM).toFixed(2)} m³`}
+              {`${d.measurements.summary.roomWidth.padEnd(17)}${values.widthM.toFixed(2)} m
+${d.measurements.summary.roomLength.padEnd(17)}${values.lengthM.toFixed(2)} m
+${d.measurements.summary.ceilingHeight.padEnd(17)}${values.heightM.toFixed(2)} m
+${d.measurements.summary.doorWidth.padEnd(17)}${values.doorWidth.toFixed(2)} m
+${d.measurements.summary.doorHeight.padEnd(17)}${values.doorHeight.toFixed(2)} m
+${d.measurements.summary.windowWidth.padEnd(17)}${values.windowWidth.toFixed(2)} m
+${d.measurements.summary.windowHeight.padEnd(17)}${values.windowHeight.toFixed(2)} m
+${d.measurements.summary.floorArea.padEnd(17)}${(values.widthM * values.lengthM).toFixed(2)} m²
+${d.measurements.summary.volume.padEnd(17)}${(values.widthM * values.lengthM * values.heightM).toFixed(2)} m³`}
             </pre>
             <Button className="mt-5 w-full" onClick={submit}>
-              Build floor plan →
+              {d.measurements.submit}
             </Button>
           </aside>
         </div>

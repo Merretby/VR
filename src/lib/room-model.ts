@@ -205,21 +205,14 @@ export interface PlanInput {
 }
 
 export function buildFloorPlan(input: PlanInput): FloorPlan {
-  const {
-    widthM,
-    lengthM,
-    heightM,
-    wallThickness = 0.12,
-    openings = [],
-  } = input;
+  const { widthM, lengthM, heightM, wallThickness = 0.12, openings = [] } = input;
 
   const walls = buildRectangularWalls(widthM, lengthM, heightM, wallThickness);
 
   return { widthM, lengthM, heightM, walls, openings };
 }
 
-export const wallLength = (w: Wall) =>
-  Math.hypot(w.end.x - w.start.x, w.end.z - w.start.z);
+export const wallLength = (w: Wall) => Math.hypot(w.end.x - w.start.x, w.end.z - w.start.z);
 
 export function wallDirection(w: Wall): Vec2 {
   const len = wallLength(w) || 1;
@@ -277,6 +270,8 @@ export interface ValidationIssue {
   code: string;
   message: string;
   wallId?: WallKey;
+  /** Raw values for rendering localized messages (see /plan page). */
+  params?: Record<string, string | number>;
 }
 
 /** Ordered closed loop: right → back → left → front → right */
@@ -296,6 +291,7 @@ export function validatePlan(plan: FloorPlan): ValidationIssue[] {
       level: "error",
       code: "wall-count",
       message: `A closed room needs 4 walls, found ${plan.walls.length}.`,
+      params: { count: plan.walls.length },
     });
   }
 
@@ -307,6 +303,7 @@ export function validatePlan(plan: FloorPlan): ValidationIssue[] {
         code: "missing-wall",
         message: `The ${key} wall is missing.`,
         wallId: key,
+        params: { wallId: key },
       });
       continue;
     }
@@ -317,6 +314,7 @@ export function validatePlan(plan: FloorPlan): ValidationIssue[] {
         code: "wall-length",
         message: `${w.label} is only ${len.toFixed(2)} m long.`,
         wallId: key,
+        params: { wallId: key, len: len.toFixed(2) },
       });
     }
     if (w.height < 1.8 || w.height > 6) {
@@ -325,6 +323,7 @@ export function validatePlan(plan: FloorPlan): ValidationIssue[] {
         code: "wall-height",
         message: `${w.label} height ${w.height.toFixed(2)} m is unusual.`,
         wallId: key,
+        params: { wallId: key, height: w.height.toFixed(2) },
       });
     }
     if (w.thickness <= 0 || w.thickness > 0.6) {
@@ -333,6 +332,7 @@ export function validatePlan(plan: FloorPlan): ValidationIssue[] {
         code: "wall-thickness",
         message: `${w.label} thickness ${w.thickness.toFixed(2)} m is unusual.`,
         wallId: key,
+        params: { wallId: key, thickness: w.thickness.toFixed(2) },
       });
     }
   }
@@ -349,6 +349,7 @@ export function validatePlan(plan: FloorPlan): ValidationIssue[] {
         code: "corner-gap",
         message: `${a.label} and ${b.label} do not meet — ${(gap * 100).toFixed(1)} cm gap at the corner.`,
         wallId: a.id,
+        params: { aId: a.id, bId: b.id, gap: (gap * 100).toFixed(1) },
       });
     }
   }
@@ -368,6 +369,7 @@ export function validatePlan(plan: FloorPlan): ValidationIssue[] {
         code: "corner-angle",
         message: `Corner between ${a.label} and ${b.label} is ${angle.toFixed(1)}° instead of 90°.`,
         wallId: a.id,
+        params: { aId: a.id, bId: b.id, angle: angle.toFixed(1) },
       });
     }
   }
@@ -390,6 +392,7 @@ export function validatePlan(plan: FloorPlan): ValidationIssue[] {
         level: "error",
         code: "orphan-opening",
         message: `A ${o.type} is attached to a wall that does not exist.`,
+        params: { type: o.type },
       });
       continue;
     }
@@ -402,6 +405,7 @@ export function validatePlan(plan: FloorPlan): ValidationIssue[] {
         code: "opening-out-of-bounds",
         message: `The ${o.type} on the ${w.label} extends past the wall edge.`,
         wallId: w.id,
+        params: { type: o.type, wallId: w.id },
       });
     }
     if (o.sill + o.height > w.height - 0.05) {
@@ -410,6 +414,7 @@ export function validatePlan(plan: FloorPlan): ValidationIssue[] {
         code: "opening-too-tall",
         message: `The ${o.type} on the ${w.label} is taller than the wall.`,
         wallId: w.id,
+        params: { type: o.type, wallId: w.id },
       });
     }
     if (o.width <= 0 || o.height <= 0) {
@@ -418,15 +423,14 @@ export function validatePlan(plan: FloorPlan): ValidationIssue[] {
         code: "opening-size",
         message: `The ${o.type} on the ${w.label} has an invalid size.`,
         wallId: w.id,
+        params: { type: o.type, wallId: w.id },
       });
     }
   }
 
   // Overlapping openings on the same wall.
   for (const key of WALL_ORDER) {
-    const list = plan.openings
-      .filter((o) => o.wallId === key)
-      .sort((a, b) => a.offset - b.offset);
+    const list = plan.openings.filter((o) => o.wallId === key).sort((a, b) => a.offset - b.offset);
     for (let i = 1; i < list.length; i++) {
       const prev = list[i - 1]!;
       const cur = list[i]!;
@@ -436,12 +440,11 @@ export function validatePlan(plan: FloorPlan): ValidationIssue[] {
           code: "opening-overlap",
           message: `Two openings overlap on the ${WALL_META[key].title}.`,
           wallId: key,
+          params: { wallId: key },
         });
       }
     }
   }
-
-
 
   return issues;
 }
