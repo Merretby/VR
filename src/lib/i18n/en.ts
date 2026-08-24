@@ -23,8 +23,11 @@ export const en = {
   },
   header: {
     home: "Home",
-    floorPlan: "Floor Plan",
-    about: "About",
+    realisations: "Our Projects",
+    solutions: "Our Solutions",
+    designService: "Design Service",
+    about: "About Us",
+    contact: "Contact us",
     captureMyRoom: "Capture My Room",
   },
   langSwitcher: {

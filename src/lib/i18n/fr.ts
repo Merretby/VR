@@ -13,8 +13,12 @@ export const fr: Dictionary = {
   },
   header: {
     home: "Accueil",
-    floorPlan: "Plan 2D",
-    captureMyRoom: "Capturer ma pièce",
+    realisations: "Nos réalisations",
+    solutions: "Nos solutions",
+    designService: "Service de conception",
+    about: "Qui sommes nous",
+    contact: "Nous contacter",
+    captureMyRoom: "Capture My Room",
   },
   langSwitcher: {
     label: "Langue",

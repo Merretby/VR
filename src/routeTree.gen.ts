@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CaptureRouteImport } from './routes/capture'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as MeasurementsRouteImport } from './routes/measurements'
 import { Route as PlanRouteImport } from './routes/plan'
 import { Route as StudioRouteImport } from './routes/studio'
@@ -42,6 +43,11 @@ const AdminRoute = AdminRouteImport.update({
 const CaptureRoute = CaptureRouteImport.update({
   id: '/capture',
   path: '/capture',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MeasurementsRoute = MeasurementsRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/capture': typeof CaptureRoute
+  '/contact': typeof ContactRoute
   '/measurements': typeof MeasurementsRoute
   '/plan': typeof PlanRoute
   '/studio': typeof StudioRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/capture': typeof CaptureRoute
+  '/contact': typeof ContactRoute
   '/measurements': typeof MeasurementsRoute
   '/plan': typeof PlanRoute
   '/studio': typeof StudioRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/capture': typeof CaptureRoute
+  '/contact': typeof ContactRoute
   '/measurements': typeof MeasurementsRoute
   '/plan': typeof PlanRoute
   '/studio': typeof StudioRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/capture'
+    | '/contact'
     | '/measurements'
     | '/plan'
     | '/studio'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/capture'
+    | '/contact'
     | '/measurements'
     | '/plan'
     | '/studio'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/capture'
+    | '/contact'
     | '/measurements'
     | '/plan'
     | '/studio'
@@ -200,6 +212,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   CaptureRoute: typeof CaptureRoute
+  ContactRoute: typeof ContactRoute
   MeasurementsRoute: typeof MeasurementsRoute
   PlanRoute: typeof PlanRoute
   StudioRoute: typeof StudioRoute
@@ -240,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/capture'
       fullPath: '/capture'
       preLoaderRoute: typeof CaptureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/measurements': {
@@ -320,6 +340,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   CaptureRoute: CaptureRoute,
+  ContactRoute: ContactRoute,
   MeasurementsRoute: MeasurementsRoute,
   PlanRoute: PlanRoute,
   StudioRoute: StudioRoute,
