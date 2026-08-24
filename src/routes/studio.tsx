@@ -27,7 +27,7 @@ const RoomExperience = lazy(() => import("@/components/room3d/RoomExperience"));
 export const Route = createFileRoute("/studio")({
   head: () => ({
     meta: [
-      { title: "3D Room Studio — Design, 360° and VR — Roomcast Studio" },
+      { title: "3D Room Studio — Design, 360° and VR — Pokibois" },
       {
         name: "description",
         content:

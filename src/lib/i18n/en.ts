@@ -24,6 +24,7 @@ export const en = {
   header: {
     home: "Home",
     floorPlan: "Floor Plan",
+    about: "About",
     captureMyRoom: "Capture My Room",
   },
   langSwitcher: {
@@ -100,7 +101,7 @@ export const en = {
     viewDetails: "View Details →",
     whyLabel: "Precision & Quality",
     whyTitleA: "Why Choose ",
-    whyAccent: "Roomcast Studio",
+    whyAccent: "Pokibois",
     why1Title: "Exact 1:1 Scale Geometry",
     why1Desc:
       "Walls, openings, and ceilings maintain true architectural dimensions so your designs actually fit.",
@@ -128,7 +129,7 @@ export const en = {
     footerCapture: "Capture Room",
     footerVr: "360° VR",
     footerPlan: "Floor Plan",
-    footerRights: "© 2026 Roomcast Studio. All rights reserved.",
+    footerRights: "© 2026 Pokibois. All rights reserved.",
   },
   moodboards: {
     "luxury-warm": {

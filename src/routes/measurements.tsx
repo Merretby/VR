@@ -11,13 +11,13 @@ import { format, useDict } from "@/lib/i18n";
 export const Route = createFileRoute("/measurements")({
   head: () => ({
     meta: [
-      { title: "Room Measurements — Roomcast Studio" },
+      { title: "Room Measurements — Pokibois" },
       {
         name: "description",
         content:
           "Enter room width, length, ceiling height and door/window sizes so the 3D reconstruction matches your real space exactly.",
       },
-      { property: "og:title", content: "Room Measurements — Roomcast Studio" },
+      { property: "og:title", content: "Room Measurements — Pokibois" },
       {
         property: "og:description",
         content: "Real dimensions in metres drive the exact geometry of your 3D room.",

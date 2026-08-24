@@ -1,5 +1,5 @@
 /**
- * Roomcast Studio - Moodboard Prompt Templates
+ * Pokibois - Moodboard Prompt Templates
  *
  * You can modify these prompt templates freely. They will be saved to the database
  * under the 'projects.prompt' column and sent as a 'prompt' field to the n8n webhook

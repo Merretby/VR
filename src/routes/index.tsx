@@ -25,6 +25,8 @@ import {
   Palette,
   Layers,
   Home,
+  ChevronLeft,
+  ChevronRight,
   Check,
 } from "lucide-react";
 
@@ -35,17 +37,21 @@ import afterContemporary from "@/assets/showcase/afterContemporary.png";
 import moodboardDefault from "@/assets/moodboards/moodbord.jpg";
 import moodboard1 from "@/assets/moodboards/moodbord-1.jpg";
 import moodboard2 from "@/assets/moodboards/moodbord-2.jpg";
+import medicalCabinetImg from "@/assets/templates/medical-cabinet.jpg";
+import kitchenImg from "@/assets/templates/kitchen.jpg";
+import bedroomImg from "@/assets/templates/bedroom.jpg";
+import livingRoomImg from "@/assets/templates/living-room.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Roomcast Studio AI 360° Room Redesign & VR Experience" },
+      { title: "Pokibois AI 360° Room Redesign & VR Experience" },
       {
         name: "description",
         content:
           "Capture your room in photos, apply luxury moodboard aesthetics, and explore your AI-redesigned room in interactive 360° and VR.",
       },
-      { property: "og:title", content: "Roomcast Studio 360° AI Interior Redesign" },
+      { property: "og:title", content: "Pokibois 360° AI Interior Redesign" },
       {
         property: "og:description",
         content:
@@ -112,8 +118,142 @@ const SHOWCASE_SPACES: ShowcaseSpace[] = [
   },
 ];
 
+
+interface DesignTemplate {
+  id: string;
+  title: string;
+  roomType: "Medical Cabinet" | "Kitchen" | "Bedroom" | "Living Room";
+  styleCategory: "Mid-Century" | "Modern-Style" | "Minimalist" | "Japandi" | "Warm-Beige" | "Medical Cabinet";
+  image: string;
+  panoParam?: string;
+  description: string;
+}
+
+const DESIGN_TEMPLATES: DesignTemplate[] = [
+  // 1. Medical Cabinet Examples (Applied Moodboards)
+  {
+    id: "template-med-1",
+    title: "Serene Japandi Medical Cabinet & Consultation Suite",
+    roomType: "Medical Cabinet",
+    styleCategory: "Medical Cabinet",
+    image: medicalCabinetImg,
+    description: "Light oak paneling, indirect LED cove lighting, travertine consultation desk, and serene patient seating.",
+  },
+  {
+    id: "template-med-2",
+    title: "Modern Luxury Executive Medical Cabinet",
+    roomType: "Medical Cabinet",
+    styleCategory: "Modern-Style",
+    image: medicalCabinetImg,
+    description: "Dark walnut wood accents, brass details, marble consultation table, and luxury climate-controlled interior.",
+  },
+  {
+    id: "template-med-3",
+    title: "Warm Beige Wellness & Clinic Consultation Room",
+    roomType: "Medical Cabinet",
+    styleCategory: "Warm-Beige",
+    image: medicalCabinetImg,
+    description: "Soft textured plaster walls, warm linen curtains, ergonomic seating, and minimalist acoustic treatment.",
+  },
+
+  // 2. Kitchen Examples (Applied Moodboards)
+  {
+    id: "template-kitchen-1",
+    title: "Luxury Waterfall Marble & Light Oak Kitchen",
+    roomType: "Kitchen",
+    styleCategory: "Modern-Style",
+    image: kitchenImg,
+    description: "Custom waterfall marble island, warm light oak cabinetry, integrated appliances, and minimalist pendant lamps.",
+  },
+  {
+    id: "template-kitchen-2",
+    title: "Japandi Organic Minimalist Open Kitchen",
+    roomType: "Kitchen",
+    styleCategory: "Japandi",
+    image: kitchenImg,
+    description: "Handcrafted wooden cabinetry, natural stone countertops, ceramic vessels, and soft indirect lighting.",
+  },
+
+  // 3. Bedroom Examples (Applied Moodboards)
+  {
+    id: "template-bedroom-1",
+    title: "Organic Japandi Fluted Headboard Bedroom",
+    roomType: "Bedroom",
+    styleCategory: "Japandi",
+    image: bedroomImg,
+    description: "Upholstered low bed, fluted oak wood headboard wall, paper globe pendant, and earthy linen bedding.",
+  },
+  {
+    id: "template-bedroom-2",
+    title: "Minimalist Neutral Master Bedroom Suite",
+    roomType: "Bedroom",
+    styleCategory: "Minimalist",
+    image: bedroomImg,
+    description: "Clean architectural lines, soft ambient sconce lighting, floating bedside tables, and plush wool rug.",
+  },
+
+  // 4. Living Room Examples (Applied Moodboards)
+  {
+    id: "template-japandi-living",
+    title: "Organic Japandi Sanctuary Living Lounge",
+    roomType: "Living Room",
+    styleCategory: "Japandi",
+    image: livingRoomImg,
+    panoParam: "panorama_japandi_default",
+    description: "Plush cream curved bouclé sofa, travertine marble coffee table, fluted walnut walls, and soft ambient glow.",
+  },
+  {
+    id: "template-lux-living",
+    title: "Walnut & Marble Grand Living Room",
+    roomType: "Living Room",
+    styleCategory: "Modern-Style",
+    image: luxuryAfter,
+    panoParam: "panorama_luxury_default",
+    description: "Rich dark walnut wood paneling, warm terracotta accents, marble fireplace, and editorial seating.",
+  },
+  {
+    id: "template-contemporary-living",
+    title: "Contemporary Architectural Salon",
+    roomType: "Living Room",
+    styleCategory: "Warm-Beige",
+    image: afterContemporary,
+    panoParam: "panorama_contemporary_default",
+    description: "Sleek sculptural furniture, soft matte brass details, forest-green velvet accents, and gallery decor.",
+  },
+
+  // 5. Mid-Century & Warm-Beige Examples
+  {
+    id: "template-mid-1",
+    title: "Mid-Century Modern Warm Beige Living Lounge",
+    roomType: "Living Room",
+    styleCategory: "Mid-Century",
+    image: japandiAfter,
+    panoParam: "panorama_japandi_default",
+    description: "Earthy beige plaster, warm oak furniture, organic woven textiles, and serene natural sunlight.",
+  },
+  {
+    id: "template-mid-2",
+    title: "Minimalist Warm Beige Quiet Luxury Salon",
+    roomType: "Living Room",
+    styleCategory: "Minimalist",
+    image: moodboard1,
+    description: "Textured linen upholstery, low wooden coffee table, paper lantern lamp, and airy open plan space.",
+  },
+];
+
 function LandingPage() {
   const navigate = useNavigate();
+  const [activeTemplateCategory, setActiveTemplateCategory] = useState<string>("Japandi");
+  const templateScrollRef = useRef<HTMLDivElement | null>(null);
+
+  const filteredTemplates = DESIGN_TEMPLATES.filter((t) => {
+    if (activeTemplateCategory === "All") return true;
+    if (activeTemplateCategory === "Medical Cabinet") return t.roomType === "Medical Cabinet" || t.styleCategory === "Medical Cabinet";
+    if (activeTemplateCategory === "Kitchen") return t.roomType === "Kitchen";
+    if (activeTemplateCategory === "Bedroom") return t.roomType === "Bedroom";
+    if (activeTemplateCategory === "Living Room") return t.roomType === "Living Room";
+    return t.styleCategory === activeTemplateCategory;
+  });
   const d = useDict();
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [showAfterOnlyMap, setShowAfterOnlyMap] = useState<Record<string, boolean>>({});
@@ -621,6 +761,140 @@ function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* 500+ Design Fast Templates Section */}
+        <section className="py-16 bg-background">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="text-center space-y-3">
+              <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+                Design Fast with Templates
+              </h2>
+              <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto">
+                Explore AI room transformations for medical cabinets, kitchens, bedrooms, and living rooms styled with curated moodboards.
+              </p>
+
+              {/* Style Filter Tabs */}
+              <div className="pt-4 flex flex-wrap justify-center items-center gap-2 sm:gap-6 text-xs sm:text-sm font-medium">
+                {[
+                  { id: "All", label: "All Templates" },
+                  { id: "Mid-Century", label: "Mid-Century" },
+                  { id: "Modern-Style", label: "Modern-Style" },
+                  { id: "Minimalist", label: "Minimalist" },
+                  { id: "Japandi", label: "Japandi" },
+                  { id: "Warm-Beige", label: "Warm-Beige" },
+                  { id: "Medical Cabinet", label: "Medical Cabinet" },
+                  { id: "Kitchen", label: "Kitchen" },
+                  { id: "Bedroom", label: "Bedroom" },
+                  { id: "Living Room", label: "Living Room" },
+                ].map((tab) => {
+                  const isActive = activeTemplateCategory === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTemplateCategory(tab.id)}
+                      className={`relative py-2 px-3 transition-colors ${
+                        isActive
+                          ? "text-foreground font-semibold"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {tab.label}
+                      {isActive && (
+                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full animate-in fade-in duration-200" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Scrollable Templates Carousel Container */}
+            <div className="relative mt-8 group">
+              <button
+                type="button"
+                onClick={() => {
+                  if (templateScrollRef.current) {
+                    templateScrollRef.current.scrollBy({ left: -360, behavior: "smooth" });
+                  }
+                }}
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-background/90 border border-border shadow-xl backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-secondary"
+              >
+                <ChevronLeft className="h-5 w-5 text-foreground" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (templateScrollRef.current) {
+                    templateScrollRef.current.scrollBy({ left: 360, behavior: "smooth" });
+                  }
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-background/90 border border-border shadow-xl backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-secondary"
+              >
+                <ChevronRight className="h-5 w-5 text-foreground" />
+              </button>
+
+              <div
+                ref={templateScrollRef}
+                className="flex gap-5 overflow-x-auto pb-4 pt-1 px-1 scrollbar-none snap-x snap-mandatory"
+                style={{ scrollbarWidth: "none" }}
+              >
+                {filteredTemplates.map((template) => (
+                  <div
+                    key={template.id}
+                    onClick={() => {
+                      if (template.panoParam) {
+                        navigate({ to: "/vr", search: { pano: template.panoParam } });
+                      } else {
+                        startCapture();
+                      }
+                    }}
+                    className="group/card cursor-pointer flex-none w-[260px] sm:w-[320px] snap-start rounded-2xl overflow-hidden border border-border/70 bg-card/80 shadow-md hover:shadow-2xl hover:border-primary/50 hover:scale-[1.02] transition-all duration-300 flex flex-col"
+                  >
+                    <div className="relative aspect-[16/11] overflow-hidden bg-muted">
+                      <img
+                        src={template.image}
+                        alt={template.title}
+                        className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover/card:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90" />
+                      
+                      <div className="absolute bottom-3 left-3">
+                        <span className="inline-flex items-center gap-1.5 bg-black/75 backdrop-blur-md text-white border border-white/20 text-[11px] font-medium px-3 py-1 rounded-lg shadow-sm">
+                          <Home className="h-3 w-3 text-accent" />
+                          {template.roomType}
+                        </span>
+                      </div>
+
+                      <div className="absolute top-3 right-3 opacity-0 group-hover/card:opacity-100 transition-opacity duration-200">
+                        <span className="inline-flex items-center gap-1 bg-primary text-primary-foreground text-[10px] font-semibold px-2.5 py-1 rounded-full shadow-lg">
+                          <Compass className="h-3 w-3" />
+                          Apply Moodboard
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-4 space-y-1.5 flex-1 flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-serif text-sm sm:text-base font-semibold group-hover/card:text-accent transition-colors line-clamp-1">
+                          {template.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 mt-1">
+                          {template.description}
+                        </p>
+                      </div>
+                      <div className="pt-2 flex items-center justify-between text-[11px] text-accent font-medium">
+                        <span>Experience Moodboard Transformation</span>
+                        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/card:translate-x-1" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
       </main>
       {selectedMoodboard && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
@@ -768,7 +1042,7 @@ function LandingPage() {
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <span className="font-serif font-semibold text-foreground text-sm">
-              Roomcast Studio
+              Pokibois
             </span>
             <span> {d.landing.footerTagline}</span>
           </div>

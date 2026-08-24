@@ -32,13 +32,13 @@ import type { ValidationIssue } from "@/lib/room-model";
 export const Route = createFileRoute("/plan")({
   head: () => ({
     meta: [
-      { title: "Verify & Edit Your Floor Plan — Roomcast Studio" },
+      { title: "Verify & Edit Your Floor Plan — Pokibois" },
       {
         name: "description",
         content:
           "Check the detected geometry before 3D reconstruction: move walls and openings, fix corner gaps and overlaps, and validate every dimension.",
       },
-      { property: "og:title", content: "Verify & Edit Your Floor Plan — Roomcast Studio" },
+      { property: "og:title", content: "Verify & Edit Your Floor Plan — Pokibois" },
       {
         property: "og:description",
         content:

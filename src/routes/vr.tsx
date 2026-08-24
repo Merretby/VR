@@ -293,8 +293,8 @@ function VrPage() {
     <div className="app">
       <header className="topbar">
         <Link to="/" className="brand-link" title={d.vr.backToHome}>
-          <img src={logo} alt="Roomcast Studio" className="brand-logo" />
-          <span>Roomcast Studio</span>
+          <img src={logo} alt="Pokibois" className="brand-logo" />
+          <span>Pokibois</span>
         </Link>
         <div className="topbar-actions">
           <div

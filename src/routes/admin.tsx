@@ -35,8 +35,8 @@ import {
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Admin Portal — Roomcast Studio" },
-      { name: "description", content: "Administrator control panel for Roomcast Studio." },
+      { title: "Admin Portal — Pokibois" },
+      { name: "description", content: "Administrator control panel for Pokibois." },
     ],
   }),
   component: AdminPage,
@@ -277,7 +277,7 @@ function AdminPage() {
         </div>
 
         <footer className="py-6 border-t border-neutral-900 text-center text-xs text-neutral-500">
-          Roomcast Studio &copy; {new Date().getFullYear()} · {d.admin.securedFooter}
+          Pokibois &copy; {new Date().getFullYear()} · {d.admin.securedFooter}
         </footer>
       </div>
     );
@@ -794,7 +794,7 @@ function AdminPage() {
       </div>
 
       <footer className="py-6 border-t border-neutral-900 text-center text-xs text-neutral-500">
-        Roomcast Studio &copy; {new Date().getFullYear()} · {d.admin.securedFooter}
+        Pokibois &copy; {new Date().getFullYear()} · {d.admin.securedFooter}
       </footer>
     </div>
   );

@@ -12,13 +12,13 @@ import { format, useDict } from "@/lib/i18n";
 export const Route = createFileRoute("/upload")({
   head: () => ({
     meta: [
-      { title: "Upload a 2D Floor Plan — Roomcast Studio" },
+      { title: "Upload a 2D Floor Plan — Pokibois" },
       {
         name: "description",
         content:
           "Upload a JPG, PNG or PDF floor plan. AI detects walls, doors, windows, dimensions and rooms, then converts it into a structured 2D model.",
       },
-      { property: "og:title", content: "Upload a 2D Floor Plan — Roomcast Studio" },
+      { property: "og:title", content: "Upload a 2D Floor Plan — Pokibois" },
       {
         property: "og:description",
         content:

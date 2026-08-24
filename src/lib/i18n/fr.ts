@@ -91,7 +91,7 @@ export const fr: Dictionary = {
     viewDetails: "Voir les détails →",
     whyLabel: "Précision et qualité",
     whyTitleA: "Pourquoi choisir ",
-    whyAccent: "Roomcast Studio",
+    whyAccent: "Pokibois",
     why1Title: "Géométrie à l'échelle 1:1 exacte",
     why1Desc:
       "Murs, ouvertures et plafonds conservent leurs vraies dimensions architecturales, vos designs s'intègrent donc réellement.",
@@ -119,7 +119,7 @@ export const fr: Dictionary = {
     footerCapture: "Capturer la pièce",
     footerVr: "VR 360°",
     footerPlan: "Plan 2D",
-    footerRights: "© 2026 Roomcast Studio. Tous droits réservés.",
+    footerRights: "© 2026 Pokibois. Tous droits réservés.",
   },
   moodboards: {
     "luxury-warm": {

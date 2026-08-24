@@ -78,13 +78,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Roomcast Studio — AI Room Reconstruction, 3D Design & VR" },
+      { title: "Pokibois — AI Room Reconstruction, 3D Design & VR" },
       {
         name: "description",
         content:
           "Capture your room or upload a 2D floor plan and get an accurate 3D model you can design, explore in 360° and enter in VR.",
       },
-      { property: "og:title", content: "Roomcast Studio — AI Room Reconstruction, 3D Design & VR" },
+      { property: "og:title", content: "Pokibois — AI Room Reconstruction, 3D Design & VR" },
       {
         property: "og:description",
         content:

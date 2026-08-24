@@ -25,7 +25,7 @@ import moodboard2 from "@/assets/moodboards/moodbord-2.jpg";
 export const Route = createFileRoute("/capture")({
   head: () => ({
     meta: [
-      { title: "Capture & Redesign Room — Roomcast Studio" },
+      { title: "Capture & Redesign Room — Pokibois" },
       {
         name: "description",
         content:
