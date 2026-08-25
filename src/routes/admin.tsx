@@ -380,7 +380,7 @@ function AdminPage() {
               const isSelected = selectedTemplateId === mb.id;
               const promptText = MOODBOARD_PROMPTS[mb.promptKey] || "";
               const isCopied = copiedTemplateKey === mb.id;
-              const mbDict = d.admin.templates[mb.id];
+              const mbDict = (d.admin?.templates && (d.admin.templates as any)[mb.id]) || { name: mb.id, tag: "Style", subtitle: "" };
 
               return (
                 <div
@@ -467,8 +467,8 @@ function AdminPage() {
               const currentTemplate = MOODBOARD_TEMPLATES.find((t) => t.id === selectedTemplateId);
               const promptText = MOODBOARD_PROMPTS[currentTemplate?.promptKey || ""] || "";
               const isCopied = copiedTemplateKey === selectedTemplateId;
-              const currentDict = currentTemplate
-                ? d.admin.templates[currentTemplate.id]
+              const currentDict = currentTemplate && d.admin?.templates
+                ? (d.admin.templates as any)[currentTemplate.id]
                 : undefined;
 
               return (
