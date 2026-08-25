@@ -1,9 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import heroBefore from "@/assets/hero-before.png";
-import heroAfter from "@/assets/hero-after.png";
-import { generateHeroImages, type HeroImages } from "@/lib/ai.functions";
 import { useDict } from "@/lib/i18n";
+
+const heroBefore = "/hero-before.png";
+const heroAfter = "/hero-after.png";
 
 interface BeforeAfterSliderProps {
   beforeImage?: string;
@@ -21,27 +20,10 @@ export function BeforeAfterSlider({
   const d = useDict();
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
-  const [heroImages, setHeroImages] = useState<HeroImages | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const generateHero = useServerFn(generateHeroImages);
-
-  useEffect(() => {
-    let cancelled = false;
-    generateHero({ data: {} })
-      .then((images) => {
-        if (!cancelled && images) setHeroImages(images);
-      })
-      .catch(() => {
-        // fall back to bundled hero images
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [generateHero]);
-
-  const beforeImage = heroImages?.before ?? defaultBefore;
-  const afterImage = heroImages?.after ?? defaultAfter;
+  const beforeImage = defaultBefore || heroBefore;
+  const afterImage = defaultAfter || heroAfter;
 
   const handleMove = useCallback((clientX: number) => {
     if (!containerRef.current) return;

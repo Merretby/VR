@@ -24,7 +24,7 @@ function readStoredLanguage(): Language | null {
 export function I18nProvider({ children }: { children: ReactNode }) {
   // Start with "en" so SSR markup and first client render match; the stored
   // preference is applied right after hydration.
-  const [lang, setLangState] = useState<Language>("en");
+  const [lang, setLangState] = useState<Language>("fr");
 
   useEffect(() => {
     const stored = readStoredLanguage();
@@ -33,7 +33,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    document.documentElement.lang = lang === "fr" ? "fr" : "en";
+    document.documentElement.lang = lang === "en" ? "en" : "fr";
   }, [lang]);
 
   const setLang = useCallback((next: Language) => {

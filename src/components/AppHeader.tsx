@@ -1,139 +1,162 @@
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, ChevronDown, Sparkles } from "lucide-react";
 import { useState } from "react";
-import { Link, useLocation } from "@tanstack/react-router";
-import logo from "@/assets/logo.jpg";
-import { Sparkles, Info, Compass, Layers, Palette, Mail, Camera, Menu, X } from "lucide-react";
-import { useDict } from "@/lib/i18n";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useDict, useI18n } from "@/lib/i18n";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
-export function AppHeader({ current }: { current?: string }) {
-  const location = useLocation();
+export function AppHeader() {
   const d = useDict();
-  const activePath = current ?? location.pathname;
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const navItems = [
-    { to: "/", label: d.header.home, icon: Sparkles },
-    { to: "/vr", label: d.header.realisations, icon: Compass },
-    { to: "/plan", label: d.header.solutions, icon: Layers },
-    { to: "/studio", label: d.header.designService, icon: Palette },
-    { to: "/about", label: d.header.about, icon: Info },
-    { to: "/contact", label: d.header.contact, icon: Mail },
-  ] as const;
+  const [spaceOpen, setSpaceOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full py-3 px-4 sm:px-6 transition-all duration-300">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-full border border-border/80 bg-background/90 px-4 py-2.5 shadow-sm backdrop-blur-md">
-        {/* Brand Logo & Name */}
-        <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-          <div className="relative overflow-hidden rounded-xl border border-border/80 shadow-xs transition-transform group-hover:scale-105">
+    <header className="sticky top-0 z-50 w-full py-3 px-3 sm:px-6 bg-background/95 backdrop-blur-xl border-b border-border/60 shadow-xs">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-4">
+        
+        {/* Brand Logo */}
+        <Link to="/" className="flex items-center gap-3 group shrink-0">
+          <div className="relative overflow-hidden rounded-xl border border-border bg-muted p-0.5 transition-transform duration-300 group-hover:scale-105">
             <img
-              src={logo}
-              alt="Pokibois"
-              className="h-8 w-8 object-cover"
+              src="/logo.jpg"
+              alt="POKIBOIS"
+              className="h-9 w-9 rounded-lg object-cover"
             />
           </div>
-          <div className="flex flex-col">
-            <span className="font-serif text-base font-semibold tracking-tight text-foreground group-hover:text-primary transition-colors">
-              Pokibois
+          <div className="hidden sm:block">
+            <span className="font-serif text-lg font-bold tracking-tight text-foreground block leading-none">
+              POKIBOIS
+            </span>
+            <span className="label-mono text-[9px] text-muted-foreground tracking-widest uppercase block mt-1">
+              {d.header?.logoSubtitle ?? "ARCHITECTURE & DIGITAL"}
             </span>
           </div>
         </Link>
 
-        {/* Center Floating Capsule Navigation (Desktop) */}
-        <nav className="hidden lg:flex items-center gap-0.5 rounded-full bg-secondary/60 p-1 border border-border/60">
-          {navItems.map((item) => {
-            const isActive = activePath === item.to || (item.to !== "/" && activePath.startsWith(item.to));
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
-                  isActive
-                    ? "bg-primary text-primary-foreground shadow-xs font-semibold"
-                    : "text-muted-foreground hover:text-foreground hover:bg-background/60"
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+        {/* Desktop Navigation Capsule - whitespace-nowrap prevents height jumps */}
+        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 rounded-full border border-border/80 bg-muted/60 p-1 shadow-xs backdrop-blur-md text-xs font-medium whitespace-nowrap shrink-0">
+          <Link
+            to="/"
+            activeProps={{ className: "bg-foreground text-background font-semibold shadow-xs" }}
+            inactiveProps={{ className: "text-muted-foreground hover:text-foreground hover:bg-background/50" }}
+            className="rounded-full px-3 py-1.5 transition-all duration-200 whitespace-nowrap shrink-0"
+          >
+            {d.header?.home ?? "Accueil"}
+          </Link>
+
+          <Link
+            to="/projects"
+            activeProps={{ className: "bg-foreground text-background font-semibold shadow-xs" }}
+            inactiveProps={{ className: "text-muted-foreground hover:text-foreground hover:bg-background/50" }}
+            className="rounded-full px-3 py-1.5 transition-all duration-200 whitespace-nowrap shrink-0"
+          >
+            {d.header?.projects ?? "Projets"}
+          </Link>
+
+          {/* Espace Link + Dropdown */}
+          <div
+            className="relative shrink-0"
+            onMouseEnter={() => setSpaceOpen(true)}
+            onMouseLeave={() => setSpaceOpen(false)}
+          >
+            <Link
+              to="/space"
+              activeProps={{ className: "bg-foreground text-background font-semibold shadow-xs" }}
+              inactiveProps={{ className: "text-muted-foreground hover:text-foreground hover:bg-background/50" }}
+              className="flex items-center gap-1 rounded-full px-3 py-1.5 transition-all duration-200 cursor-pointer whitespace-nowrap shrink-0"
+            >
+              <span>{d.header?.space ?? "Espace"}</span>
+              <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${spaceOpen ? "rotate-180 text-foreground" : ""}`} />
+            </Link>
+
+            {spaceOpen && (
+              <div className="absolute top-full left-0 mt-2 w-64 rounded-2xl border border-border bg-background/95 p-2 shadow-xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                <Link
+                  to="/renovation"
+                  onClick={() => setSpaceOpen(false)}
+                  activeProps={{ className: "bg-muted font-semibold text-foreground" }}
+                  inactiveProps={{ className: "text-muted-foreground hover:text-foreground hover:bg-muted/60" }}
+                  className="flex flex-col gap-0.5 rounded-xl p-2.5 transition-colors"
+                >
+                  <span className="text-xs font-medium">{d.header?.renovation ?? "Rénovation & Transformation"}</span>
+                  <span className="text-[10px] text-muted-foreground">Architecture, structure & réhabilitation</span>
+                </Link>
+                <Link
+                  to="/fitout"
+                  onClick={() => setSpaceOpen(false)}
+                  activeProps={{ className: "bg-muted font-semibold text-foreground" }}
+                  inactiveProps={{ className: "text-muted-foreground hover:text-foreground hover:bg-muted/60" }}
+                  className="flex flex-col gap-0.5 rounded-xl p-2.5 transition-colors mt-1"
+                >
+                  <span className="text-xs font-medium">{d.header?.fitout ?? "Aménagement & Sur-mesure"}</span>
+                  <span className="text-[10px] text-muted-foreground">Agencement, menuiserie & mobilier</span>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          <Link
+            to="/digital"
+            activeProps={{ className: "bg-foreground text-background font-semibold shadow-xs" }}
+            inactiveProps={{ className: "text-muted-foreground hover:text-foreground hover:bg-background/50" }}
+            className="rounded-full px-3 py-1.5 transition-all duration-200 whitespace-nowrap shrink-0"
+          >
+            {d.header?.digital ?? "Digital"}
+          </Link>
+
+          <Link
+            to="/packages"
+            activeProps={{ className: "bg-foreground text-background font-semibold shadow-xs" }}
+            inactiveProps={{ className: "text-muted-foreground hover:text-foreground hover:bg-background/50" }}
+            className="rounded-full px-3 py-1.5 transition-all duration-200 whitespace-nowrap shrink-0"
+          >
+            {d.header?.packages ?? "Formules"}
+          </Link>
+
+          <Link
+            to="/method"
+            activeProps={{ className: "bg-foreground text-background font-semibold shadow-xs" }}
+            inactiveProps={{ className: "text-muted-foreground hover:text-foreground hover:bg-background/50" }}
+            className="rounded-full px-3 py-1.5 transition-all duration-200 whitespace-nowrap shrink-0"
+          >
+            {d.header?.method ?? "Méthode"}
+          </Link>
+
+          <Link
+            to="/healthcare"
+            activeProps={{ className: "bg-foreground text-background font-semibold shadow-xs" }}
+            inactiveProps={{ className: "text-muted-foreground hover:text-foreground hover:bg-background/50" }}
+            className="rounded-full px-3 py-1.5 transition-all duration-200 whitespace-nowrap shrink-0"
+          >
+            {d.header?.healthcare ?? "Santé"}
+          </Link>
         </nav>
 
-        {/* Desktop Right Action Area */}
-        <div className="hidden lg:flex items-center gap-2">
+        {/* Right Section: Language Switcher & CTA */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <LanguageSwitcher />
 
           <Link
-            to="/capture"
-            className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md shrink-0"
+            to="/contact"
+            className="relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-foreground px-4 sm:px-5 py-2 text-xs font-semibold text-background shadow-md transition-all duration-300 hover:scale-[1.02] hover:bg-foreground/90 active:scale-95 shrink-0 whitespace-nowrap"
           >
-            <Camera className="h-4 w-4" />
-            <span>{d.header.captureMyRoom}</span>
+            <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
+            <span className="hidden sm:inline">{d.header?.contact ?? "Parlons de votre projet"}</span>
+            <span className="sm:hidden">Projet</span>
+            <ArrowRight className="h-3.5 w-3.5" />
           </Link>
-        </div>
-
-        {/* Mobile Action Controls */}
-        <div className="flex lg:hidden items-center gap-2">
-          <LanguageSwitcher />
-
-          <Link
-            to="/capture"
-            className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-xs"
-          >
-            <Camera className="h-3.5 w-3.5" />
-            <span className="text-[11px] font-bold">Capture</span>
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground border border-border/80 shadow-xs focus:outline-none active:scale-95 transition-transform"
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </button>
         </div>
       </div>
 
-      {/* Mobile Navigation Dropdown Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden mt-2 mx-auto max-w-7xl rounded-3xl border border-border/80 bg-background/95 p-4 shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex flex-col gap-1">
-            {navItems.map((item) => {
-              const isActive = activePath === item.to || (item.to !== "/" && activePath.startsWith(item.to));
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  }`}
-                >
-                  <Icon className="h-4 w-4 text-primary" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-
-            <div className="pt-2 mt-1 border-t border-border/60">
-              <Link
-                to="/capture"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center gap-2 rounded-2xl bg-accent px-4 py-3 text-sm font-bold text-accent-foreground shadow-md"
-              >
-                <Camera className="h-4 w-4" />
-                <span>{d.header.captureMyRoom}</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Mobile Sub-Navigation Bar */}
+      <div className="flex lg:hidden overflow-x-auto gap-1.5 py-2 px-1 text-xs scrollbar-none border-t border-border/30 mt-2 whitespace-nowrap">
+        <Link to="/" className="shrink-0 px-3 py-1 rounded-full bg-muted/80 text-foreground font-medium">Accueil</Link>
+        <Link to="/projects" className="shrink-0 px-3 py-1 rounded-full text-muted-foreground">Projets</Link>
+        <Link to="/renovation" className="shrink-0 px-3 py-1 rounded-full text-muted-foreground">Rénovation</Link>
+        <Link to="/fitout" className="shrink-0 px-3 py-1 rounded-full text-muted-foreground">Sur-mesure</Link>
+        <Link to="/digital" className="shrink-0 px-3 py-1 rounded-full text-muted-foreground">Digital</Link>
+        <Link to="/packages" className="shrink-0 px-3 py-1 rounded-full text-muted-foreground">Formules</Link>
+        <Link to="/method" className="shrink-0 px-3 py-1 rounded-full text-muted-foreground">Méthode</Link>
+        <Link to="/healthcare" className="shrink-0 px-3 py-1 rounded-full text-muted-foreground">Santé</Link>
+      </div>
     </header>
   );
 }

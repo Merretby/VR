@@ -14,14 +14,23 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CaptureRouteImport } from './routes/capture'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DigitalRouteImport } from './routes/digital'
+import { Route as FitoutRouteImport } from './routes/fitout'
+import { Route as HealthcareRouteImport } from './routes/healthcare'
 import { Route as MeasurementsRouteImport } from './routes/measurements'
+import { Route as MethodRouteImport } from './routes/method'
+import { Route as PackagesRouteImport } from './routes/packages'
 import { Route as PlanRouteImport } from './routes/plan'
+import { Route as RenovationRouteImport } from './routes/renovation'
+import { Route as SpaceRouteImport } from './routes/space'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as VrRouteImport } from './routes/vr'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as FilesSplatRouteImport } from './routes/files/$'
+import { Route as ProjectsIndexRouteImport } from './routes/projects/index'
+import { Route as ProjectsProjectIdRouteImport } from './routes/projects/$projectId'
 import { Route as ApiImagesSplatRouteImport } from './routes/api/images/$'
 import { Route as ApiPanoramasSplatRouteImport } from './routes/api/panoramas/$'
 
@@ -50,14 +59,49 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DigitalRoute = DigitalRouteImport.update({
+  id: '/digital',
+  path: '/digital',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FitoutRoute = FitoutRouteImport.update({
+  id: '/fitout',
+  path: '/fitout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HealthcareRoute = HealthcareRouteImport.update({
+  id: '/healthcare',
+  path: '/healthcare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MeasurementsRoute = MeasurementsRouteImport.update({
   id: '/measurements',
   path: '/measurements',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MethodRoute = MethodRouteImport.update({
+  id: '/method',
+  path: '/method',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PackagesRoute = PackagesRouteImport.update({
+  id: '/packages',
+  path: '/packages',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlanRoute = PlanRouteImport.update({
   id: '/plan',
   path: '/plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RenovationRoute = RenovationRouteImport.update({
+  id: '/renovation',
+  path: '/renovation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpaceRoute = SpaceRouteImport.update({
+  id: '/space',
+  path: '/space',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudioRoute = StudioRouteImport.update({
@@ -90,6 +134,16 @@ const FilesSplatRoute = FilesSplatRouteImport.update({
   path: '/files/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
+  id: '/projects/',
+  path: '/projects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
+  id: '/projects/$projectId',
+  path: '/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
   id: '/api/images/$',
   path: '/api/images/$',
@@ -107,14 +161,23 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/capture': typeof CaptureRoute
   '/contact': typeof ContactRoute
+  '/digital': typeof DigitalRoute
+  '/fitout': typeof FitoutRoute
+  '/healthcare': typeof HealthcareRoute
   '/measurements': typeof MeasurementsRoute
+  '/method': typeof MethodRoute
+  '/packages': typeof PackagesRoute
   '/plan': typeof PlanRoute
+  '/renovation': typeof RenovationRoute
+  '/space': typeof SpaceRoute
   '/studio': typeof StudioRoute
   '/upload': typeof UploadRoute
   '/vr': typeof VrRoute
   '/api/health': typeof ApiHealthRoute
   '/api/upload': typeof ApiUploadRoute
   '/files/$': typeof FilesSplatRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/projects/': typeof ProjectsIndexRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/panoramas/$': typeof ApiPanoramasSplatRoute
 }
@@ -124,14 +187,23 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/capture': typeof CaptureRoute
   '/contact': typeof ContactRoute
+  '/digital': typeof DigitalRoute
+  '/fitout': typeof FitoutRoute
+  '/healthcare': typeof HealthcareRoute
   '/measurements': typeof MeasurementsRoute
+  '/method': typeof MethodRoute
+  '/packages': typeof PackagesRoute
   '/plan': typeof PlanRoute
+  '/renovation': typeof RenovationRoute
+  '/space': typeof SpaceRoute
   '/studio': typeof StudioRoute
   '/upload': typeof UploadRoute
   '/vr': typeof VrRoute
   '/api/health': typeof ApiHealthRoute
   '/api/upload': typeof ApiUploadRoute
   '/files/$': typeof FilesSplatRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/projects': typeof ProjectsIndexRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/panoramas/$': typeof ApiPanoramasSplatRoute
 }
@@ -142,14 +214,23 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/capture': typeof CaptureRoute
   '/contact': typeof ContactRoute
+  '/digital': typeof DigitalRoute
+  '/fitout': typeof FitoutRoute
+  '/healthcare': typeof HealthcareRoute
   '/measurements': typeof MeasurementsRoute
+  '/method': typeof MethodRoute
+  '/packages': typeof PackagesRoute
   '/plan': typeof PlanRoute
+  '/renovation': typeof RenovationRoute
+  '/space': typeof SpaceRoute
   '/studio': typeof StudioRoute
   '/upload': typeof UploadRoute
   '/vr': typeof VrRoute
   '/api/health': typeof ApiHealthRoute
   '/api/upload': typeof ApiUploadRoute
   '/files/$': typeof FilesSplatRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/projects/': typeof ProjectsIndexRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/panoramas/$': typeof ApiPanoramasSplatRoute
 }
@@ -161,14 +242,23 @@ export interface FileRouteTypes {
     | '/admin'
     | '/capture'
     | '/contact'
+    | '/digital'
+    | '/fitout'
+    | '/healthcare'
     | '/measurements'
+    | '/method'
+    | '/packages'
     | '/plan'
+    | '/renovation'
+    | '/space'
     | '/studio'
     | '/upload'
     | '/vr'
     | '/api/health'
     | '/api/upload'
     | '/files/$'
+    | '/projects/$projectId'
+    | '/projects/'
     | '/api/images/$'
     | '/api/panoramas/$'
   fileRoutesByTo: FileRoutesByTo
@@ -178,14 +268,23 @@ export interface FileRouteTypes {
     | '/admin'
     | '/capture'
     | '/contact'
+    | '/digital'
+    | '/fitout'
+    | '/healthcare'
     | '/measurements'
+    | '/method'
+    | '/packages'
     | '/plan'
+    | '/renovation'
+    | '/space'
     | '/studio'
     | '/upload'
     | '/vr'
     | '/api/health'
     | '/api/upload'
     | '/files/$'
+    | '/projects/$projectId'
+    | '/projects'
     | '/api/images/$'
     | '/api/panoramas/$'
   id:
@@ -195,14 +294,23 @@ export interface FileRouteTypes {
     | '/admin'
     | '/capture'
     | '/contact'
+    | '/digital'
+    | '/fitout'
+    | '/healthcare'
     | '/measurements'
+    | '/method'
+    | '/packages'
     | '/plan'
+    | '/renovation'
+    | '/space'
     | '/studio'
     | '/upload'
     | '/vr'
     | '/api/health'
     | '/api/upload'
     | '/files/$'
+    | '/projects/$projectId'
+    | '/projects/'
     | '/api/images/$'
     | '/api/panoramas/$'
   fileRoutesById: FileRoutesById
@@ -213,14 +321,23 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   CaptureRoute: typeof CaptureRoute
   ContactRoute: typeof ContactRoute
+  DigitalRoute: typeof DigitalRoute
+  FitoutRoute: typeof FitoutRoute
+  HealthcareRoute: typeof HealthcareRoute
   MeasurementsRoute: typeof MeasurementsRoute
+  MethodRoute: typeof MethodRoute
+  PackagesRoute: typeof PackagesRoute
   PlanRoute: typeof PlanRoute
+  RenovationRoute: typeof RenovationRoute
+  SpaceRoute: typeof SpaceRoute
   StudioRoute: typeof StudioRoute
   UploadRoute: typeof UploadRoute
   VrRoute: typeof VrRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiUploadRoute: typeof ApiUploadRoute
   FilesSplatRoute: typeof FilesSplatRoute
+  ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
+  ProjectsIndexRoute: typeof ProjectsIndexRoute
   ApiImagesSplatRoute: typeof ApiImagesSplatRoute
   ApiPanoramasSplatRoute: typeof ApiPanoramasSplatRoute
 }
@@ -262,6 +379,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/digital': {
+      id: '/digital'
+      path: '/digital'
+      fullPath: '/digital'
+      preLoaderRoute: typeof DigitalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fitout': {
+      id: '/fitout'
+      path: '/fitout'
+      fullPath: '/fitout'
+      preLoaderRoute: typeof FitoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/healthcare': {
+      id: '/healthcare'
+      path: '/healthcare'
+      fullPath: '/healthcare'
+      preLoaderRoute: typeof HealthcareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/measurements': {
       id: '/measurements'
       path: '/measurements'
@@ -269,11 +407,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MeasurementsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/method': {
+      id: '/method'
+      path: '/method'
+      fullPath: '/method'
+      preLoaderRoute: typeof MethodRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/packages': {
+      id: '/packages'
+      path: '/packages'
+      fullPath: '/packages'
+      preLoaderRoute: typeof PackagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/plan': {
       id: '/plan'
       path: '/plan'
       fullPath: '/plan'
       preLoaderRoute: typeof PlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/renovation': {
+      id: '/renovation'
+      path: '/renovation'
+      fullPath: '/renovation'
+      preLoaderRoute: typeof RenovationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/space': {
+      id: '/space'
+      path: '/space'
+      fullPath: '/space'
+      preLoaderRoute: typeof SpaceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/studio': {
@@ -318,6 +484,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FilesSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projects/': {
+      id: '/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof ProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/$projectId': {
+      id: '/projects/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId'
+      preLoaderRoute: typeof ProjectsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/images/$': {
       id: '/api/images/$'
       path: '/api/images/$'
@@ -341,14 +521,23 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   CaptureRoute: CaptureRoute,
   ContactRoute: ContactRoute,
+  DigitalRoute: DigitalRoute,
+  FitoutRoute: FitoutRoute,
+  HealthcareRoute: HealthcareRoute,
   MeasurementsRoute: MeasurementsRoute,
+  MethodRoute: MethodRoute,
+  PackagesRoute: PackagesRoute,
   PlanRoute: PlanRoute,
+  RenovationRoute: RenovationRoute,
+  SpaceRoute: SpaceRoute,
   StudioRoute: StudioRoute,
   UploadRoute: UploadRoute,
   VrRoute: VrRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiUploadRoute: ApiUploadRoute,
   FilesSplatRoute: FilesSplatRoute,
+  ProjectsProjectIdRoute: ProjectsProjectIdRoute,
+  ProjectsIndexRoute: ProjectsIndexRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
   ApiPanoramasSplatRoute: ApiPanoramasSplatRoute,
 }

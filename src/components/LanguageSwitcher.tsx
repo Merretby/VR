@@ -1,29 +1,36 @@
 import { useI18n } from "@/lib/i18n";
+import { Globe } from "lucide-react";
 
-export function LanguageSwitcher({ className }: { className?: string }) {
-  const { lang, setLang, d } = useI18n();
+export function LanguageSwitcher() {
+  const { lang, setLang } = useI18n();
 
   return (
-    <div
-      role="group"
-      aria-label={d.langSwitcher.label}
-      className={`flex items-center rounded-full border border-border/80 bg-secondary/60 p-0.5 ${className ?? ""}`}
-    >
-      {(["en", "fr"] as const).map((code) => (
-        <button
-          key={code}
-          type="button"
-          onClick={() => setLang(code)}
-          aria-pressed={lang === code}
-          className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase transition-all ${
-            lang === code
-              ? "bg-primary text-primary-foreground shadow-xs"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          {d.langSwitcher[code]}
-        </button>
-      ))}
+    <div className="flex items-center gap-1.5 rounded-full border border-border/80 bg-muted/80 p-1 shadow-xs backdrop-blur-md text-xs font-mono">
+      <Globe className="h-3.5 w-3.5 text-muted-foreground ml-1.5 hidden sm:inline" />
+      <button
+        onClick={() => setLang("fr")}
+        className={`rounded-full px-2.5 py-1 transition-all duration-200 cursor-pointer font-bold ${
+          lang === "fr"
+            ? "bg-foreground text-background shadow-xs"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+        title="Passer en français"
+        aria-label="Passer en français"
+      >
+        FR
+      </button>
+      <button
+        onClick={() => setLang("en")}
+        className={`rounded-full px-2.5 py-1 transition-all duration-200 cursor-pointer font-bold ${
+          lang === "en"
+            ? "bg-foreground text-background shadow-xs"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+        title="Switch to English"
+        aria-label="Switch to English"
+      >
+        EN
+      </button>
     </div>
   );
 }
