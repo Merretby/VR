@@ -327,7 +327,40 @@ export const en = {
     universesCombinedDesc: "Space and digital image are designed as two dimensions of the same project.",
     methodLabel: "OUR METHOD FOR HEALTHCARE PROJECTS",
     m1: "LISTEN", m2: "DIAGNOSE", m3: "DESIGN", m4: "VISUALIZE", m5: "QUOTE", m6: "EXECUTE", m7: "DELIVER",
-    faqTitle: "HEALTHCARE FAQ",
+        faqTitle: "HEALTHCARE FAQ",
+    faqs: [
+      {
+        q: "Can you transform an existing clinic or practice?",
+        a: "Yes. The project can start from an existing clinic, a renovation, or a new space to fit out, depending on your situation."
+      },
+      {
+        q: "Can you handle both the physical space and the clinic's brand identity?",
+        a: "Yes. With our COMBINED approach, interior fit-out and digital branding can be designed seamlessly together."
+      },
+      {
+        q: "Why use 3D visualization?",
+        a: "Because it allows you to clearly understand volumes, patient traffic flows, materials, and overall ambiance before executing the build."
+      },
+      {
+        q: "Do you handle regulatory compliance and requirements?",
+        a: "Applicable regulatory requirements must be verified based on the project specifics and the defined scope of each stakeholder."
+      }
+    ],
+    medicalList: [
+      "Reception & Secretary Desk", "Waiting Room", "Consultation Rooms",
+      "Circulations & Hallways", "Storage & Organization", "Custom-made Furniture", "Architectural Lighting",
+      "Ambiance & Acoustics", "Clinic Identity & Branding", "Digital Presence & Website"
+    ],
+    dentalList: [
+      "Reception", "Waiting Area", "Treatment & Operatory Rooms", "Layout & Flow Around the Chair",
+      "Storage Units", "Traffic Flows", "Custom Furniture", "Lighting & Ambiance",
+      "Practice Branding", "Digital Presence"
+    ],
+    labList: [
+      "Reception Desk", "Waiting Lounge", "Sample Collection Booths", "Internal Flow & Hallways",
+      "Storage Solutions", "Professional Medical Furniture", "Technical Zones as Per Scope",
+      "Wayfinding & Signage", "Brand Identity", "Digital Presence"
+    ],
     proofTitle: "HEALTHCARE PROOF / REFERENCES",
     proofDesc: "Discover our achievements, transformations, and documented projects.",
     ctaTitle: "Are you preparing a practice, laboratory, or healthcare space transformation?",

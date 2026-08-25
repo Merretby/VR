@@ -319,7 +319,40 @@ export const fr: Dictionary = {
     universesCombinedDesc: "L’espace et l’image digitale sont conçus comme les deux dimensions d’un même projet.",
     methodLabel: "NOTRE MÉTHODE POUR UN PROJET DE SANTÉ",
     m1: "ÉCOUTER", m2: "DIAGNOSTIQUER", m3: "CONCEVOIR", m4: "VISUALISER", m5: "CHIFFRER", m6: "RÉALISER", m7: "LIVRER",
-    faqTitle: "FAQ SANTÉ",
+        faqTitle: "FAQ SANTÉ",
+    faqs: [
+      {
+        q: "Pouvez-vous transformer un cabinet existant ?",
+        a: "Oui. Le projet peut partir d’un local existant, d’une rénovation ou d’un nouveau local à aménager, selon votre situation."
+      },
+      {
+        q: "Pouvez-vous gérer l’espace et l’identité du cabinet ?",
+        a: "Oui. Avec l’approche COMBINÉ, l’aménagement et l’univers digital peuvent être pensés ensemble."
+      },
+      {
+        q: "Pourquoi utiliser la 3D ?",
+        a: "Parce qu’elle permet de comprendre les volumes, les circulations, les matériaux et l’ambiance avant de réaliser le projet."
+      },
+      {
+        q: "Prenez-vous en charge les contraintes réglementaires ?",
+        a: "Les exigences applicables doivent être vérifiées selon le projet et les responsabilités de chaque intervenant."
+      }
+    ],
+    medicalList: [
+      "Accueil et secrétariat", "Salle d’attente", "Salles de consultation",
+      "Circulations", "Rangement", "Mobilier sur-mesure", "Éclairage",
+      "Ambiance", "Identité du cabinet", "Présence digitale"
+    ],
+    dentalList: [
+      "Accueil", "Attente", "Salles de soins", "Organisation autour du fauteuil",
+      "Rangements", "Circulations", "Mobilier", "Ambiance",
+      "Identité du cabinet", "Présence digitale"
+    ],
+    labList: [
+      "Accueil", "Attente", "Prélèvement", "Circulations",
+      "Rangements", "Mobilier professionnel", "Zones techniques selon périmètre",
+      "Signalétique", "Identité", "Présence digitale"
+    ],
     proofTitle: "PREUVE / RÉFÉRENCES SANTÉ",
     proofDesc: "Découvrez nos réalisations, nos transformations et nos projets documentés.",
     ctaTitle: "Vous préparez un cabinet, un laboratoire ou la transformation d’un espace de santé ?",

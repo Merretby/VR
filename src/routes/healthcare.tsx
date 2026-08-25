@@ -21,25 +21,25 @@ function HealthcarePage() {
     { title: hc.stk5Title, desc: hc.stk5Desc },
   ];
 
-  const medicalList = [
+    const medicalList = hc.medicalList || [
     "Accueil et secrétariat", "Salle d’attente", "Salles de consultation",
     "Circulations", "Rangement", "Mobilier sur-mesure", "Éclairage",
     "Ambiance", "Identité du cabinet", "Présence digitale"
   ];
 
-  const dentalList = [
+  const dentalList = hc.dentalList || [
     "Accueil", "Attente", "Salles de soins", "Organisation autour du fauteuil",
     "Rangements", "Circulations", "Mobilier", "Ambiance",
     "Identité du cabinet", "Présence digitale"
   ];
 
-  const labList = [
+  const labList = hc.labList || [
     "Accueil", "Attente", "Prélèvement", "Circulations",
     "Rangements", "Mobilier professionnel", "Zones techniques selon périmètre",
     "Signalétique", "Identité", "Présence digitale"
   ];
 
-  const faqs = [
+  const faqs = hc.faqs || [
     { q: "Pouvez-vous transformer un cabinet existant ?", a: "Oui. Le projet peut partir d’un local existant, d’une rénovation ou d’un nouveau local à aménager, selon votre situation." },
     { q: "Pouvez-vous gérer l’espace et l’identité du cabinet ?", a: "Oui. Avec l’approche COMBINÉ, l’aménagement et l’univers digital peuvent être pensés ensemble." },
     { q: "Pourquoi utiliser la 3D ?", a: "Parce qu’elle permet de comprendre les volumes, les circulations, les matériaux et l’ambiance avant de réaliser le projet." },
