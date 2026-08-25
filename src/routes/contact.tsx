@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { AppHeader } from "@/components/AppHeader";
-import { AppFooter } from "@/components/AppFooter";
+
 
 import { useDict, format } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
@@ -87,7 +86,7 @@ function ProjectConsultationPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
-      <AppHeader current="/contact" />
+      
 
       <main className="flex-1 py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full space-y-12">
         {/* HERO */}
@@ -301,7 +300,7 @@ function ProjectConsultationPage() {
         </div>
       </main>
 
-      <AppFooter />
+      
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AppHeader } from "@/components/AppHeader";
-import { AppFooter } from "@/components/AppFooter";
+
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 
 import { PROJECTS_DATA } from "@/lib/projectsData";
@@ -29,7 +28,7 @@ function HomePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans overflow-x-clip">
-      <AppHeader current="/" />
+      
 
       {/* HERO SECTION */}
       <section className="relative min-h-[85vh] flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8 border-b border-border/60 overflow-hidden">
@@ -351,7 +350,7 @@ function HomePage() {
         </div>
       </section>
 
-      <AppFooter />
+      
     </div>
   );
 }

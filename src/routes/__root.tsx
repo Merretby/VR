@@ -12,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
+import { AppHeader } from "@/components/AppHeader";
+import { AppFooter } from "@/components/AppFooter";
 import { I18nProvider, useDict } from "@/lib/i18n";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -135,8 +137,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <div className="min-h-screen flex flex-col bg-background text-foreground">
+        <AppHeader />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <AppFooter />
+      </div>
       <Toaster />
       <Link
         to="/admin"

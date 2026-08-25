@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -206,7 +205,7 @@ function AdminPage() {
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-neutral-950 text-white flex flex-col justify-between">
-        <AppHeader current="/admin" />
+        
 
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-3xl p-8 shadow-2xl space-y-6 relative overflow-hidden">
@@ -286,7 +285,7 @@ function AdminPage() {
   // Render Dashboard Phase
   return (
     <div className="min-h-screen bg-neutral-950 text-white flex flex-col justify-between">
-      <AppHeader current="/admin" />
+      
 
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 space-y-8">
         {/* Dashboard Title Panel */}

@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import {
   Sparkles,
@@ -41,7 +40,7 @@ export const Route = createFileRoute("/about")({
 function AboutPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
-      <AppHeader current="/about" />
+      
 
       <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-16">
         {/* Hero Section */}

@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AppHeader } from "@/components/AppHeader";
-import { AppFooter } from "@/components/AppFooter";
+
 
 import { useDict } from "@/lib/i18n";
 import { ArrowUpRight } from "lucide-react";
@@ -15,7 +14,7 @@ function DigitalPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
-      <AppHeader current="/digital" />
+      
 
       <main className="flex-1 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-20">
         {/* HERO */}
@@ -110,7 +109,7 @@ function DigitalPage() {
         </section>
       </main>
 
-      <AppFooter />
+      
     </div>
   );
 }

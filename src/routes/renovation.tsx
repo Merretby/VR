@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AppHeader } from "@/components/AppHeader";
-import { AppFooter } from "@/components/AppFooter";
+
 
 import { useDict } from "@/lib/i18n";
 import { ArrowUpRight, CheckCircle2, Home as HomeIcon, Building2, Stethoscope } from "lucide-react";
@@ -40,7 +39,7 @@ function RenovationPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
-      <AppHeader current="/renovation" />
+      
 
       <main className="flex-1 py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-20">
         {/* HERO */}
@@ -157,7 +156,7 @@ function RenovationPage() {
         </section>
       </main>
 
-      <AppFooter />
+      
     </div>
   );
 }
