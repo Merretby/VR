@@ -41,33 +41,34 @@ export function AppHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-[100] w-full bg-[#fbf9f5] dark:bg-background border-b border-border/50 shadow-xs transition-colors duration-300">
+      <header className="sticky top-0 z-[100] w-full bg-[#f6f3ed] dark:bg-background border-b border-border/50 shadow-xs transition-colors duration-300">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-4 py-2.5 sm:py-3 px-3 sm:px-6 lg:px-8">
           
           {/* Brand Logo */}
-          <Link to="/" onClick={closeMenu} className="flex items-center gap-2.5 sm:gap-3.5 group shrink-0">
-            <div className="relative overflow-hidden rounded-xl border border-border/60 bg-card p-0.5 shadow-xs transition-transform duration-300 group-hover:scale-105">
+          {/* Brand Logo */}
+          <Link to="/" onClick={closeMenu} className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+            <div className="relative overflow-hidden rounded-lg border border-border/70 bg-card p-0.5 shadow-xs transition-transform duration-200 group-hover:scale-105">
               <img
                 src="/logo.jpg"
                 alt="POKIBOIS"
-                className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg object-cover"
+                className="h-7 w-7 sm:h-7.5 sm:w-7.5 rounded-md object-cover"
               />
             </div>
             <div>
-              <span className="font-serif text-base sm:text-lg font-bold tracking-tight text-foreground block leading-none">
+              <span className="font-sans text-[12px] sm:text-[13px] font-extrabold tracking-widest uppercase text-[#0C2D3B] dark:text-[#f0f6f8] block leading-none">
                 POKIBOIS
               </span>
-              {/* <span className="label-mono text-[8px] sm:text-[9px] text-muted-foreground tracking-widest uppercase block mt-0.5 sm:mt-1">
+              {/* <span className="label-mono text-[7.5px] sm:text-[8.5px] text-[#5a7783] dark:text-[#8fa8b2] tracking-widest uppercase block mt-0.5">
                 {d.header?.logoSubtitle ?? "ARCHITECTURE & DIGITAL"}
               </span> */}
             </div>
           </Link>
 
           {/* Center Pill Navigation Bar - Desktop only */}
-          <nav className="hidden lg:flex items-center gap-1 rounded-full border border-border/70 bg-[#f5f2eb] dark:bg-muted/70 p-1.5 shadow-xs text-xs font-medium text-foreground whitespace-nowrap shrink-0">
+          <nav className="hidden lg:flex items-center gap-1 rounded-full border border-border/70 bg-[#ece7de] dark:bg-muted/70 p-1.5 shadow-xs text-xs font-medium text-foreground whitespace-nowrap shrink-0">
             <Link
               to="/"
-              activeProps={{ className: "bg-[#26211c] text-white font-semibold shadow-xs" }}
+              activeProps={{ className: "bg-[#0c2d3b] text-white font-semibold shadow-xs" }}
               inactiveProps={{ className: "text-muted-foreground hover:text-foreground" }}
               className="rounded-full px-4 py-2 transition-all duration-200 whitespace-nowrap shrink-0"
             >
@@ -76,7 +77,7 @@ export function AppHeader() {
 
             <Link
               to="/projects"
-              activeProps={{ className: "bg-[#26211c] text-white font-semibold shadow-xs" }}
+              activeProps={{ className: "bg-[#0c2d3b] text-white font-semibold shadow-xs" }}
               inactiveProps={{ className: "text-muted-foreground hover:text-foreground" }}
               className="rounded-full px-4 py-2 transition-all duration-200 whitespace-nowrap shrink-0"
             >
@@ -91,7 +92,7 @@ export function AppHeader() {
             >
               <Link
                 to="/space"
-                activeProps={{ className: "bg-[#26211c] text-white font-semibold shadow-xs" }}
+                activeProps={{ className: "bg-[#0c2d3b] text-white font-semibold shadow-xs" }}
                 inactiveProps={{ className: "text-muted-foreground hover:text-foreground" }}
                 className="flex items-center gap-1.5 rounded-full px-4 py-2 transition-all duration-200 cursor-pointer whitespace-nowrap shrink-0"
               >
@@ -127,7 +128,7 @@ export function AppHeader() {
 
             <Link
               to="/digital"
-              activeProps={{ className: "bg-[#26211c] text-white font-semibold shadow-xs" }}
+              activeProps={{ className: "bg-[#0c2d3b] text-white font-semibold shadow-xs" }}
               inactiveProps={{ className: "text-muted-foreground hover:text-foreground" }}
               className="rounded-full px-4 py-2 transition-all duration-200 whitespace-nowrap shrink-0"
             >
@@ -136,7 +137,7 @@ export function AppHeader() {
 
             <Link
               to="/packages"
-              activeProps={{ className: "bg-[#26211c] text-white font-semibold shadow-xs" }}
+              activeProps={{ className: "bg-[#0c2d3b] text-white font-semibold shadow-xs" }}
               inactiveProps={{ className: "text-muted-foreground hover:text-foreground" }}
               className="rounded-full px-4 py-2 transition-all duration-200 whitespace-nowrap shrink-0"
             >
@@ -145,7 +146,7 @@ export function AppHeader() {
 
             <Link
               to="/method"
-              activeProps={{ className: "bg-[#26211c] text-white font-semibold shadow-xs" }}
+              activeProps={{ className: "bg-[#0c2d3b] text-white font-semibold shadow-xs" }}
               inactiveProps={{ className: "text-muted-foreground hover:text-foreground" }}
               className="rounded-full px-4 py-2 transition-all duration-200 whitespace-nowrap shrink-0"
             >
@@ -154,7 +155,7 @@ export function AppHeader() {
 
             <Link
               to="/healthcare"
-              activeProps={{ className: "bg-[#26211c] text-white font-semibold shadow-xs" }}
+              activeProps={{ className: "bg-[#0c2d3b] text-white font-semibold shadow-xs" }}
               inactiveProps={{ className: "text-muted-foreground hover:text-foreground" }}
               className="rounded-full px-4 py-2 transition-all duration-200 whitespace-nowrap shrink-0"
             >
@@ -169,9 +170,9 @@ export function AppHeader() {
             {/* Desktop CTA */}
             <Link
               to="/contact"
-              className="hidden sm:inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-[#26211c] px-4 lg:px-5 py-2 sm:py-2.5 text-xs font-semibold text-white shadow-md transition-all duration-300 hover:scale-[1.02] hover:bg-[#1a1714] active:scale-95 shrink-0 whitespace-nowrap"
+              className="hidden sm:inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-[#0c2d3b] px-4 lg:px-5 py-2 sm:py-2.5 text-xs font-semibold text-white shadow-md transition-all duration-300 hover:scale-[1.02] hover:bg-[#13394a] active:scale-95 shrink-0 whitespace-nowrap"
             >
-              <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
+              <Sparkles className="h-3.5 w-3.5 text-[#c8a870] animate-pulse" />
               <span>{lang === "fr" ? "Parlons de votre projet" : "Contact us"}</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
@@ -181,7 +182,7 @@ export function AppHeader() {
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle navigation menu"
-              className="lg:hidden flex items-center justify-center h-9 w-9 rounded-full bg-[#f5f2eb] dark:bg-muted text-foreground border border-border/80 shadow-xs transition-colors hover:bg-muted active:scale-95 cursor-pointer"
+              className="lg:hidden flex items-center justify-center h-9 w-9 rounded-full bg-[#ece7de] dark:bg-muted text-foreground border border-border/80 shadow-xs transition-colors hover:bg-muted active:scale-95 cursor-pointer"
             >
               {mobileMenuOpen ? (
                 <X className="h-4 w-4 text-foreground" />
@@ -195,7 +196,7 @@ export function AppHeader() {
 
       {/* Fullscreen Mobile Navigation Modal Drawer - Rendered outside header to guarantee 100% viewport coverage */}
       {mobileMenuOpen && (
-        <div className="fixed inset-x-0 top-[54px] sm:top-[61px] bottom-0 z-[9999] bg-[#fbf9f5] dark:bg-background lg:hidden flex flex-col justify-between p-5 overflow-y-auto border-t border-border shadow-2xl">
+        <div className="fixed inset-x-0 top-[54px] sm:top-[61px] bottom-0 z-[9999] bg-[#f6f3ed] dark:bg-background lg:hidden flex flex-col justify-between p-5 overflow-y-auto border-t border-border shadow-2xl">
           <div className="space-y-2 py-2">
             <Link
               to="/"
@@ -294,20 +295,20 @@ export function AppHeader() {
             <Link
               to="/contact"
               onClick={closeMenu}
-              className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-[#26211c] py-4 text-xs font-bold uppercase tracking-wider text-white shadow-xl active:scale-98"
+              className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-[#0c2d3b] py-4 text-xs font-bold uppercase tracking-wider text-white shadow-xl active:scale-98"
             >
-              <Sparkles className="h-4 w-4 text-amber-400" />
+              <Sparkles className="h-4 w-4 text-[#c8a870]" />
               <span>{lang === "fr" ? "Parlons de votre projet" : "Talk about my project"}</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
 
             <div className="flex items-center justify-between text-[11px] text-muted-foreground font-mono pt-1">
               <a href="tel:+33142685500" className="flex items-center gap-1.5 hover:text-foreground">
-                <Phone className="h-3 w-3 text-amber-600" />
+                <Phone className="h-3 w-3 text-[#0c2d3b]" />
                 <span>+33 1 42 68 55 00</span>
               </a>
               <a href="mailto:contact@pokibois.fr" className="flex items-center gap-1.5 hover:text-foreground">
-                <Mail className="h-3 w-3 text-amber-600" />
+                <Mail className="h-3 w-3 text-[#0c2d3b]" />
                 <span>contact@pokibois.fr</span>
               </a>
             </div>

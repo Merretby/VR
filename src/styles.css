@@ -5,7 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system definition — Warm Luxury Architectural Theme
+ * Design system definition — POKIBOIS Warm Architectural Cream & Petrol Navy Theme
+ * Exact match to Image 18 & Official Logo
  */
 
 @theme inline {
@@ -55,76 +56,77 @@
 :root {
   --radius: 0.625rem;
 
-  /* Warm Luxury Parchment Palette */
-  --background: oklch(0.972 0.012 85);
-  --foreground: oklch(0.22 0.025 60);
+  /* Warm Luxury Architectural Cream / Ivory Linen (Not stark white) */
+  --background: #f6f3ed;
+  --foreground: #0c2d3b;
   
-  --card: oklch(0.948 0.016 82);
-  --card-foreground: oklch(0.22 0.025 60);
+  --card: #fdfcf9;
+  --card-foreground: #0c2d3b;
 
-  --popover: oklch(0.948 0.016 82);
-  --popover-foreground: oklch(0.22 0.025 60);
+  --popover: #fdfcf9;
+  --popover-foreground: #0c2d3b;
 
-  --primary: oklch(0.22 0.025 60);
-  --primary-foreground: oklch(0.972 0.012 85);
+  /* Primary Deep Petrol Navy from Logo */
+  --primary: #0c2d3b;
+  --primary-foreground: #ffffff;
 
-  --secondary: oklch(0.92 0.018 80);
-  --secondary-foreground: oklch(0.22 0.025 60);
+  --secondary: #ece7de;
+  --secondary-foreground: #0c2d3b;
 
-  --muted: oklch(0.92 0.018 80);
-  --muted-foreground: oklch(0.46 0.022 65);
+  --muted: #ece7de;
+  --muted-foreground: #677b84;
 
-  --accent: oklch(0.55 0.11 55);
-  --accent-foreground: oklch(0.98 0.008 85);
+  /* Champagne Gold Frame Accent from Logo */
+  --accent: #c8a870;
+  --accent-foreground: #0c2d3b;
 
-  --destructive: oklch(0.55 0.18 25);
-  --destructive-foreground: oklch(0.98 0.005 85);
+  --destructive: #be3b3b;
+  --destructive-foreground: #ffffff;
 
-  --border: oklch(0.885 0.018 80);
-  --input: oklch(0.885 0.018 80);
-  --ring: oklch(0.22 0.025 60);
+  --border: #dfd8cc;
+  --input: #dfd8cc;
+  --ring: #0c2d3b;
 
-  --surface-elevated: oklch(0.948 0.016 82);
-  --shadow-soft: 0 14px 36px -12px oklch(0.2 0.02 60 / 0.08);
-  --gradient-warm: linear-gradient(135deg, oklch(0.982 0.01 85), oklch(0.94 0.018 80));
+  --surface-elevated: #fdfcf9;
+  --shadow-soft: 0 14px 36px -12px rgba(12, 45, 59, 0.08);
+  --gradient-warm: linear-gradient(135deg, #fdfcf9, #ece7de);
 
-  --chart-1: oklch(0.45 0.1 55);
-  --chart-2: oklch(0.55 0.1 80);
-  --chart-3: oklch(0.35 0.05 60);
-  --chart-4: oklch(0.65 0.12 50);
-  --chart-5: oklch(0.5 0.08 70);
+  --chart-1: #0c2d3b;
+  --chart-2: #c8a870;
+  --chart-3: #185269;
+  --chart-4: #3c7d96;
+  --chart-5: #8fa8b2;
 
-  --sidebar: oklch(0.948 0.016 82);
-  --sidebar-foreground: oklch(0.22 0.025 60);
-  --sidebar-primary: oklch(0.22 0.025 60);
-  --sidebar-primary-foreground: oklch(0.972 0.012 85);
-  --sidebar-accent: oklch(0.92 0.018 80);
-  --sidebar-accent-foreground: oklch(0.22 0.025 60);
-  --sidebar-border: oklch(0.885 0.018 80);
-  --sidebar-ring: oklch(0.22 0.025 60);
+  --sidebar: #fdfcf9;
+  --sidebar-foreground: #0c2d3b;
+  --sidebar-primary: #0c2d3b;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ece7de;
+  --sidebar-accent-foreground: #0c2d3b;
+  --sidebar-border: #dfd8cc;
+  --sidebar-ring: #0c2d3b;
 }
 
 .dark {
-  /* Enforce the warm luxury cream theme for dark class as well */
-  --background: oklch(0.972 0.012 85);
-  --foreground: oklch(0.22 0.025 60);
-  --card: oklch(0.948 0.016 82);
-  --card-foreground: oklch(0.22 0.025 60);
-  --popover: oklch(0.948 0.016 82);
-  --popover-foreground: oklch(0.22 0.025 60);
-  --primary: oklch(0.22 0.025 60);
-  --primary-foreground: oklch(0.972 0.012 85);
-  --secondary: oklch(0.92 0.018 80);
-  --secondary-foreground: oklch(0.22 0.025 60);
-  --muted: oklch(0.92 0.018 80);
-  --muted-foreground: oklch(0.46 0.022 65);
-  --accent: oklch(0.55 0.11 55);
-  --accent-foreground: oklch(0.98 0.008 85);
-  --destructive: oklch(0.55 0.18 25);
-  --destructive-foreground: oklch(0.98 0.005 85);
-  --border: oklch(0.885 0.018 80);
-  --input: oklch(0.885 0.018 80);
-  --ring: oklch(0.22 0.025 60);
+  --background: #081d26;
+  --foreground: #f0f6f8;
+  --card: #0c2d3b;
+  --card-foreground: #f0f6f8;
+  --popover: #0c2d3b;
+  --popover-foreground: #f0f6f8;
+  --primary: #c8a870;
+  --primary-foreground: #081d26;
+  --secondary: #13394a;
+  --secondary-foreground: #f0f6f8;
+  --muted: #13394a;
+  --muted-foreground: #8fa8b2;
+  --accent: #c8a870;
+  --accent-foreground: #081d26;
+  --destructive: #be3b3b;
+  --destructive-foreground: #ffffff;
+  --border: #18465a;
+  --input: #18465a;
+  --ring: #c8a870;
 }
 
 @layer base {
@@ -155,11 +157,11 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-muted-foreground);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .hero-glow {
-  background: radial-gradient(circle at 50% 20%, oklch(0.988 0.008 85), oklch(0.955 0.015 82));
+  background: radial-gradient(circle at 50% 20%, #fdfcf9, #f6f3ed);
 }
 
 /* Mobile utility: prevent horizontal overflow on the whole page */

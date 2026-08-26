@@ -63,7 +63,7 @@ function HomePage() {
           <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 pt-3 sm:pt-4 w-full max-w-xs sm:max-w-none mx-auto">
             <Link
               to="/contact"
-              className="w-full sm:w-auto group inline-flex items-center justify-center gap-3 rounded-full bg-[#26211c] px-7 sm:px-8 py-3.5 sm:py-4 text-xs font-bold uppercase tracking-wider text-white shadow-lg hover:bg-black transition-all hover:scale-105 active:scale-95"
+              className="w-full sm:w-auto group inline-flex items-center justify-center gap-3 rounded-full bg-[#0c2d3b] px-7 sm:px-8 py-3.5 sm:py-4 text-xs font-bold uppercase tracking-wider text-white shadow-lg hover:bg-black transition-all hover:scale-105 active:scale-95"
             >
               <span>{h.btnTalk}</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
