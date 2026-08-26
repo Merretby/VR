@@ -43,9 +43,9 @@ export function AppFooter() {
               <img src="/logo.jpg" alt="POKIBOIS" className="h-9 w-9 rounded-xl object-cover border border-border" />
               <div>
                 <span className="font-serif text-xl font-bold tracking-tight block leading-none">POKIBOIS</span>
-                <span className="label-mono text-[9px] text-muted-foreground tracking-widest uppercase block mt-1">
+                {/* <span className="label-mono text-[9px] text-muted-foreground tracking-widest uppercase block mt-1">
                   {d.header?.logoSubtitle ?? "ARCHITECTURE & DIGITAL"}
-                </span>
+                </span> */}
               </div>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-sm">

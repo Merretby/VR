@@ -31,7 +31,7 @@ function HomePage() {
       
 
       {/* HERO SECTION */}
-      <section className="relative min-h-[85vh] flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8 border-b border-border/60 overflow-hidden">
+      <section className="relative min-h-[80vh] sm:min-h-[85vh] flex items-center justify-center py-14 sm:py-20 px-4 sm:px-6 lg:px-8 border-b border-border/60 overflow-hidden w-full">
         <div className="absolute inset-0 z-0 opacity-25 dark:opacity-30">
           <img
             src="/templates/living-room.jpg"
@@ -41,29 +41,29 @@ function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/90 to-background" />
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-secondary/80 px-4 py-1.5 text-xs font-semibold text-foreground backdrop-blur-md">
-            <Sparkles className="h-3.5 w-3.5 text-accent" />
-            <span className="label-mono text-[11px] tracking-widest">{h.heroBadge}</span>
+        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-6 sm:space-y-8 w-full px-1 sm:px-0">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-secondary/80 px-3.5 sm:px-4 py-1.5 text-xs font-semibold text-foreground backdrop-blur-md shadow-xs">
+            <Sparkles className="h-3.5 w-3.5 text-accent shrink-0" />
+            <span className="label-mono text-[10px] sm:text-[11px] tracking-widest">{h.heroBadge}</span>
           </div>
 
-          <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight leading-[1.08] text-foreground">
+          <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.12] text-foreground text-balance break-words px-2">
             {h.heroTitleA}<br />
             <span className="italic font-normal text-muted-foreground">{h.heroTitleB}</span>
           </h1>
 
-          <p className="text-base sm:text-xl text-muted-foreground max-w-3xl mx-auto font-light leading-relaxed">
+          <p className="text-sm sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto font-light leading-relaxed px-2 sm:px-4">
             {h.heroSubtitle}
           </p>
 
-          <p className="text-xs sm:text-sm font-semibold text-foreground max-w-2xl mx-auto">
+          <p className="text-xs sm:text-sm font-semibold text-foreground max-w-2xl mx-auto px-2">
             {h.heroOneContact}
           </p>
 
-          <div className="flex flex-wrap justify-center items-center gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 pt-3 sm:pt-4 w-full max-w-xs sm:max-w-none mx-auto">
             <Link
               to="/contact"
-              className="group inline-flex items-center gap-3 rounded-full bg-primary px-8 py-4 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-lg hover:bg-primary/90 transition-all hover:scale-105"
+              className="w-full sm:w-auto group inline-flex items-center justify-center gap-3 rounded-full bg-[#26211c] px-7 sm:px-8 py-3.5 sm:py-4 text-xs font-bold uppercase tracking-wider text-white shadow-lg hover:bg-black transition-all hover:scale-105 active:scale-95"
             >
               <span>{h.btnTalk}</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -71,7 +71,7 @@ function HomePage() {
 
             <Link
               to="/projects"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-background/80 backdrop-blur-md px-7 py-4 text-xs font-bold uppercase tracking-wider text-foreground hover:bg-secondary transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border border-border bg-background/80 backdrop-blur-md px-6 sm:px-7 py-3.5 sm:py-4 text-xs font-bold uppercase tracking-wider text-foreground hover:bg-secondary transition-all active:scale-95"
             >
               <span>{h.btnDiscoverProjects}</span>
             </Link>
