@@ -31,14 +31,14 @@ function HomePage() {
       
 
       {/* HERO SECTION */}
-      <section className="relative min-h-[80vh] sm:min-h-[85vh] flex items-center justify-center py-14 sm:py-20 px-4 sm:px-6 lg:px-8 border-b border-border/60 overflow-hidden w-full">
-        <div className="absolute inset-0 z-0 opacity-25 dark:opacity-30">
+      <section className="relative min-h-[80vh] sm:min-h-[88vh] flex items-center justify-center py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-b border-border/60 overflow-hidden w-full">
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <img
             src="/templates/living-room.jpg"
             alt="Pokibois Architecture & Aménagement"
-            className="w-full h-full object-cover filter contrast-[1.05] brightness-90"
+            className="w-full h-full object-cover scale-110 filter blur-[0px] sm:blur-[0px] brightness-[0.98] opacity-60 dark:opacity-45 transition-transform duration-1000"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/90 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/45 via-background/65 to-background" />
         </div>
 
         <div className="relative z-10 max-w-5xl mx-auto text-center space-y-6 sm:space-y-8 w-full px-1 sm:px-0">
