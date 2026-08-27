@@ -306,9 +306,9 @@ export function AppHeader() {
                 <Phone className="h-3 w-3 text-[#c8a870]" />
                 <span>+33 1 42 68 55 00</span>
               </a>
-              <a href="mailto:contact@pokibois.fr" className="flex items-center gap-1.5 hover:text-white">
+              <a href="mailto:boutiquepokibois@gmail.com" className="flex items-center gap-1.5 hover:text-white">
                 <Mail className="h-3 w-3 text-[#c8a870]" />
-                <span>contact@pokibois.fr</span>
+                <span>boutiquepokibois@gmail.com</span>
               </a>
             </div>
           </div>
