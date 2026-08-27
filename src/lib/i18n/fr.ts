@@ -20,7 +20,7 @@ export const fr: Dictionary = {
     errorTitle: "Cette page ne s'est pas chargée",
     errorBody: "Une erreur est survenue de notre côté. Vous pouvez actualiser la page ou revenir à l'accueil.",
     tryAgain: "Réessayer",
-    adminPortal: "Portail Admin",
+    adminPortal: "Portail Pokibois",
   },
   header: {
     brandSubtitle: "Architecture & Digital",
@@ -54,7 +54,7 @@ export const fr: Dictionary = {
     copyright: "POKIBOIS. Tous droits réservés. Architecture, Sur-mesure & Digital.",
     legal: "Mentions légales",
     privacy: "Politique de confidentialité",
-    admin: "Portail Admin",
+    admin: "Portail Pokibois",
   },
     admin: {
     loginTitle: "Portail Administrateur",

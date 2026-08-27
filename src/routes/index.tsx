@@ -79,6 +79,88 @@ function HomePage() {
         </div>
       </section>
 
+            {/* SECTION : VOUS ÊTES ? (POUR QUI) */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-10">
+        <div className="text-center space-y-3 max-w-2xl mx-auto">
+          {h.forWhoLabel && <span className="label-mono text-accent">{h.forWhoLabel}</span>}
+          <h2 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight text-foreground">
+            {h.forWhoTitle}
+          </h2>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {/* PARTICULIERS */}
+          <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-xs flex flex-col justify-start space-y-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3.5 min-h-[48px]">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <HomeIcon className="h-5 w-5" />
+              </div>
+              <h3 className="font-serif text-base sm:text-lg font-bold text-foreground leading-tight">
+                {h.forPartTitle}
+              </h3>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {h.forPartDesc}
+            </p>
+          </div>
+
+          {/* COMMERCES & RESTAURANTS */}
+          <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-xs flex flex-col justify-start space-y-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3.5 min-h-[48px]">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <ShoppingBag className="h-5 w-5" />
+              </div>
+              <h3 className="font-serif text-base sm:text-lg font-bold text-foreground leading-tight">
+                {h.forRetailTitle}
+              </h3>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {h.forRetailDesc}
+            </p>
+          </div>
+
+          {/* BUREAUX & ENTREPRISES */}
+          <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-xs flex flex-col justify-start space-y-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3.5 min-h-[48px]">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <Building2 className="h-5 w-5" />
+              </div>
+              <h3 className="font-serif text-base sm:text-lg font-bold text-foreground leading-tight">
+                {h.forOfficeTitle}
+              </h3>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {h.forOfficeDesc}
+            </p>
+          </div>
+
+          {/* PROFESSIONNELS DE SANTÉ */}
+          <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-xs flex flex-col justify-start space-y-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3.5 min-h-[48px]">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <Stethoscope className="h-5 w-5" />
+              </div>
+              <h3 className="font-serif text-base sm:text-lg font-bold text-foreground leading-tight">
+                {h.forHealthTitle}
+              </h3>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {h.forHealthDesc}
+            </p>
+          </div>
+        </div>
+
+        <div className="text-center pt-2">
+          <Link
+            to="/healthcare"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-md hover:bg-primary/90 transition-all hover:scale-105"
+          >
+            <span>{h.btnDiscoverHealth}</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
       {/* SECTION : UN PROJET. UNE VISION GLOBALE. */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-12">
         <div className="text-center space-y-4 max-w-3xl mx-auto">
@@ -152,52 +234,6 @@ function HomePage() {
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-        </div>
-      </section>
-
-      {/* SECTION : POUR QUI ? */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-12 border-t border-border/60">
-        <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <span className="label-mono text-accent">{h.forWhoLabel}</span>
-          <h2 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight">
-            {h.forWhoTitle}
-          </h2>
-        </div>
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-3xl border border-border/80 bg-card p-6 space-y-3 shadow-xs">
-            <HomeIcon className="h-8 w-8 text-primary" />
-            <h3 className="font-serif text-xl font-bold">{h.forPartTitle}</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">{h.forPartDesc}</p>
-          </div>
-
-          <div className="rounded-3xl border border-border/80 bg-card p-6 space-y-3 shadow-xs">
-            <ShoppingBag className="h-8 w-8 text-primary" />
-            <h3 className="font-serif text-xl font-bold">{h.forRetailTitle}</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">{h.forRetailDesc}</p>
-          </div>
-
-          <div className="rounded-3xl border border-border/80 bg-card p-6 space-y-3 shadow-xs">
-            <Building2 className="h-8 w-8 text-primary" />
-            <h3 className="font-serif text-xl font-bold">{h.forOfficeTitle}</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">{h.forOfficeDesc}</p>
-          </div>
-
-          <div className="rounded-3xl border border-border/80 bg-card p-6 space-y-3 shadow-xs">
-            <Stethoscope className="h-8 w-8 text-primary" />
-            <h3 className="font-serif text-xl font-bold">{h.forHealthTitle}</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">{h.forHealthDesc}</p>
-          </div>
-        </div>
-
-        <div className="text-center pt-4">
-          <Link
-            to="/healthcare"
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-md hover:bg-primary/90"
-          >
-            <span>{h.btnDiscoverHealth}</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
       </section>
 
