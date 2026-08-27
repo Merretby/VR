@@ -23,7 +23,7 @@ export function PlaceholderBadge({ text }: { text: string }) {
           </div>
           <div className="flex items-center gap-2">
             <Mail className="h-3.5 w-3.5 text-amber-600" />
-            <a href="mailto:contact@pokibois.fr" className="hover:underline">contact@pokibois.fr</a>
+            <a href="mailto:boutiquepokibois@gmail.com" className="hover:underline">boutiquepokibois@gmail.com</a>
           </div>
           <div className="flex items-center gap-2">
             <MapPin className="h-3.5 w-3.5 text-amber-600" />

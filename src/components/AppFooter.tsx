@@ -89,7 +89,7 @@ export function AppFooter() {
                 <Mail className="h-3.5 w-3.5 text-[#c8a870] shrink-0" />
                 <div>
                   <span className="text-[9px] text-white/60 uppercase block font-mono">E-mail</span>
-                  <a href="mailto:contact@pokibois.fr" className="font-medium hover:underline text-white">contact@pokibois.fr</a>
+                  <a href="mailto:boutiquepokibois@gmail.com" className="font-medium hover:underline text-white">boutiquepokibois@gmail.com</a>
                 </div>
               </div>
               <div className="flex items-start gap-2.5">

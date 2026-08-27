@@ -50,7 +50,8 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-serif: "Newsreader", "Playfair Display", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Playfair Display", "Plus Jakarta Sans", Georgia, serif;
 }
 
 :root {
@@ -152,12 +153,12 @@
 }
 
 .label-mono {
-  font-family: var(--font-mono, monospace);
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-muted-foreground);
-  font-weight: 600;
+  color: var(--color-accent);
+  font-weight: 700;
 }
 
 .hero-glow {
