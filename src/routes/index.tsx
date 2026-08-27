@@ -79,137 +79,137 @@ function HomePage() {
         </div>
       </section>
 
-                  {/* SECTION : VOUS ÊTES ? (POUR QUI) */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-10">
-        <div className="text-center space-y-3 max-w-2xl mx-auto">
-          {h.forWhoLabel && <span className="label-mono text-accent">{h.forWhoLabel}</span>}
-          <h2 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight text-foreground">
+                        {/* SECTION : VOUS ÊTES ? (POUR QUI) */}
+      <section className="py-20 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto w-full space-y-12 sm:space-y-14">
+        <div className="text-center space-y-3.5 max-w-3xl mx-auto">
+          {h.forWhoLabel && <span className="label-mono text-accent text-xs font-bold tracking-[0.2em]">{h.forWhoLabel}</span>}
+          <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground">
             {h.forWhoTitle}
           </h2>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* 1. PARTICULIERS / RESIDENTIAL */}
-          <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition-all group">
-            <div className="space-y-3.5">
+          <div className="rounded-[2rem] border border-border/80 bg-card p-6 sm:p-7 lg:p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between space-y-5 group">
+            <div className="space-y-4">
               {/* 1 - Title + Icon */}
-              <div className="flex items-center gap-3 min-h-[44px]">
-                <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                  <HomeIcon className="h-4.5 w-4.5" />
+              <div className="flex items-center gap-3.5 min-h-[52px]">
+                <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground shadow-xs">
+                  <HomeIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <h3 className="font-serif text-base sm:text-lg font-bold text-foreground leading-tight">
+                <h3 className="font-serif text-lg sm:text-xl font-bold text-foreground leading-tight">
                   {h.forPartTitle}
                 </h3>
               </div>
 
-              {/* 2 - Picture of Particuliers / Residential */}
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-xs">
+              {/* 2 - Picture */}
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl sm:rounded-[1.25rem] border border-border/60 bg-muted shadow-xs">
                 <img
                   src="/templates/living-room.jpg"
                   alt={h.forPartTitle}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-108"
                 />
               </div>
 
               {/* 3 - Text */}
-              <p className="text-xs text-muted-foreground leading-relaxed pt-1">
+              <p className="text-[13px] sm:text-sm text-muted-foreground leading-relaxed pt-1.5">
                 {h.forPartDesc}
               </p>
             </div>
           </div>
 
           {/* 2. COMMERCES & RESTAURANTS */}
-          <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition-all group">
-            <div className="space-y-3.5">
+          <div className="rounded-[2rem] border border-border/80 bg-card p-6 sm:p-7 lg:p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between space-y-5 group">
+            <div className="space-y-4">
               {/* 1 - Title + Icon */}
-              <div className="flex items-center gap-3 min-h-[44px]">
-                <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                  <ShoppingBag className="h-4.5 w-4.5" />
+              <div className="flex items-center gap-3.5 min-h-[52px]">
+                <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground shadow-xs">
+                  <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <h3 className="font-serif text-base sm:text-lg font-bold text-foreground leading-tight">
+                <h3 className="font-serif text-lg sm:text-xl font-bold text-foreground leading-tight">
                   {h.forRetailTitle}
                 </h3>
               </div>
 
-              {/* 2 - Picture of Commerces & Restaurants */}
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-xs">
+              {/* 2 - Picture */}
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl sm:rounded-[1.25rem] border border-border/60 bg-muted shadow-xs">
                 <img
                   src="/templates/kitchen.jpg"
                   alt={h.forRetailTitle}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-108"
                 />
               </div>
 
               {/* 3 - Text */}
-              <p className="text-xs text-muted-foreground leading-relaxed pt-1">
+              <p className="text-[13px] sm:text-sm text-muted-foreground leading-relaxed pt-1.5">
                 {h.forRetailDesc}
               </p>
             </div>
           </div>
 
           {/* 3. BUREAUX & ENTREPRISES */}
-          <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition-all group">
-            <div className="space-y-3.5">
+          <div className="rounded-[2rem] border border-border/80 bg-card p-6 sm:p-7 lg:p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between space-y-5 group">
+            <div className="space-y-4">
               {/* 1 - Title + Icon */}
-              <div className="flex items-center gap-3 min-h-[44px]">
-                <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                  <Building2 className="h-4.5 w-4.5" />
+              <div className="flex items-center gap-3.5 min-h-[52px]">
+                <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground shadow-xs">
+                  <Building2 className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <h3 className="font-serif text-base sm:text-lg font-bold text-foreground leading-tight">
+                <h3 className="font-serif text-lg sm:text-xl font-bold text-foreground leading-tight">
                   {h.forOfficeTitle}
                 </h3>
               </div>
 
-              {/* 2 - Picture of Bureaux & Entreprises */}
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-xs">
+              {/* 2 - Picture */}
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl sm:rounded-[1.25rem] border border-border/60 bg-muted shadow-xs">
                 <img
                   src="/templates/bedroom.jpg"
                   alt={h.forOfficeTitle}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-108"
                 />
               </div>
 
               {/* 3 - Text */}
-              <p className="text-xs text-muted-foreground leading-relaxed pt-1">
+              <p className="text-[13px] sm:text-sm text-muted-foreground leading-relaxed pt-1.5">
                 {h.forOfficeDesc}
               </p>
             </div>
           </div>
 
           {/* 4. PROFESSIONNELS DE SANTÉ */}
-          <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition-all group">
-            <div className="space-y-3.5">
+          <div className="rounded-[2rem] border border-border/80 bg-card p-6 sm:p-7 lg:p-8 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between space-y-5 group">
+            <div className="space-y-4">
               {/* 1 - Title + Icon */}
-              <div className="flex items-center gap-3 min-h-[44px]">
-                <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                  <Stethoscope className="h-4.5 w-4.5" />
+              <div className="flex items-center gap-3.5 min-h-[52px]">
+                <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground shadow-xs">
+                  <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <h3 className="font-serif text-base sm:text-lg font-bold text-foreground leading-tight">
+                <h3 className="font-serif text-lg sm:text-xl font-bold text-foreground leading-tight">
                   {h.forHealthTitle}
                 </h3>
               </div>
 
-              {/* 2 - Picture of Professionnels de Santé */}
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-xs">
+              {/* 2 - Picture */}
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl sm:rounded-[1.25rem] border border-border/60 bg-muted shadow-xs">
                 <img
                   src="/templates/medical-cabinet.jpg"
                   alt={h.forHealthTitle}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-108"
                 />
               </div>
 
               {/* 3 - Text */}
-              <p className="text-xs text-muted-foreground leading-relaxed pt-1">
+              <p className="text-[13px] sm:text-sm text-muted-foreground leading-relaxed pt-1.5">
                 {h.forHealthDesc}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="text-center pt-2">
+        <div className="text-center pt-4">
           <Link
             to="/healthcare"
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-md hover:bg-primary/90 transition-all hover:scale-105"
+            className="inline-flex items-center gap-2.5 rounded-full bg-primary px-8 py-4 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-md hover:bg-primary/90 transition-all hover:scale-105"
           >
             <span>{h.btnDiscoverHealth}</span>
             <ArrowRight className="h-4 w-4" />
