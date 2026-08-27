@@ -356,7 +356,7 @@ export const fr: Dictionary = {
   healthcare: {
     metaTitle: "Aménagement santé & cabinets professionnels — POKIBOIS",
     metaDesc: "Pokibois conçoit et transforme cabinets médicaux, dentaires, laboratoires et espaces de santé : espace, sur-mesure et digital.",
-    label: "PROFESSIONNELS DE SANTÉ",
+    // label: "PROFESSIONNELS DE SANTÉ",
     title: "Des espaces de santé pensés pour votre métier.",
     subtitle: "Cabinets médicaux, cabinets dentaires, laboratoires d’analyses et autres professionnels de santé : Pokibois vous accompagne dans la conception, la transformation, l’aménagement et la digitalisation de votre espace.",
     tagline: "Parce qu’un espace de santé doit être beau, mais surtout fonctionnel, fluide et adapté à ceux qui y travaillent comme à ceux qui le fréquentent.",
@@ -366,7 +366,7 @@ export const fr: Dictionary = {
     whyDesc1: "Un cabinet ou un laboratoire n’est pas un local comme les autres. L’espace doit accompagner une activité précise, des équipes, des patients et des usages quotidiens.",
     whyDesc2: "La conception doit donc partir de la réalité du métier : comment on entre, comment on attend, comment on circule, où l’on travaille, où l’on range, comment les zones sont utilisées et comment l’expérience peut rester claire et rassurante.",
     whyGoal: "Notre objectif est de développer cette expertise dans la durée, tout en conservant notre accompagnement des particuliers et des autres professionnels.",
-    stakesLabel: "ENJEUX MÉTIERS",
+    // stakesLabel: "ENJEUX MÉTIERS",
     stakesTitle: "LES ENJEUX QUE NOUS PRENONS EN COMPTE",
     stk1Title: "PARCOURS",
     stk1Desc: "Rendre les déplacements plus intuitifs et limiter les situations de confusion ou de croisement lorsque l’organisation du projet l’exige.",

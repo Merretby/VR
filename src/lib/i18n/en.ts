@@ -365,7 +365,7 @@ export const en = {
   healthcare: {
     metaTitle: "Healthcare & Professional Clinics — POKIBOIS",
     metaDesc: "Pokibois designs and transforms medical practices, dental clinics, labs and healthcare spaces: space, custom-made, and digital.",
-    label: "HEALTHCARE PROFESSIONALS",
+    // label: "HEALTHCARE PROFESSIONALS",
     title: "Healthcare spaces designed for your profession.",
     subtitle: "Medical practices, dental clinics, analysis laboratories and other healthcare professionals: Pokibois supports you in designing, transforming, fitting out and digitalizing your space.",
     tagline: "Because a healthcare venue must be aesthetic, but above all functional, fluid, and adapted to both practitioners and patients.",
@@ -375,7 +375,7 @@ export const en = {
     whyDesc1: "A practice or laboratory is not a regular commercial venue. The space must support a precise activity, teams, patients, and daily usages.",
     whyDesc2: "Design must start from the reality of the profession: how people enter, wait, circulate, work, store items, and how the overall experience remains clear and reassuring.",
     whyGoal: "Our goal is to build this deep expertise long-term while maintaining our support for residential and commercial clients.",
-    stakesLabel: "PROFESSIONAL STAKES",
+    // stakesLabel: "PROFESSIONAL STAKES",
     stakesTitle: "STAKES WE TAKE INTO ACCOUNT",
     stk1Title: "PATIENT JOURNEY",
     stk1Desc: "Making movements intuitive and limiting confusion or unwanted crossovers when project organization requires it.",
