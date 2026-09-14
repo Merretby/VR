@@ -53,9 +53,9 @@ function SpacePage() {
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="label-mono text-amber-600 dark:text-amber-400 font-bold uppercase tracking-widest">
+            {/* <span className="label-mono text-amber-600 dark:text-amber-400 font-bold uppercase tracking-widest">
               {lang === "fr" ? "NOS DEUX DOMAINES D'INTERVENTION ESPACE" : "OUR TWO SPACE EXPERTISES"}
-            </span>
+            </span> */}
             <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight">
               {lang === "fr" ? "De la structure aux finitions d'art" : "From Core Structure to Artful Finishes"}
             </h2>

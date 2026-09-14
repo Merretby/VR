@@ -1,12 +1,81 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-
 import { useDict } from "@/lib/i18n";
 import { ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/method")({
   component: MethodPage,
 });
+
+function StepArtwork({ step }: { step: string }) {
+  const palettes = {
+    "01": {
+      bg: ["#f7f1e7", "#e8d2b0"],
+      accent: "#a67c4e",
+      shape: "#d5b38a",
+      line: "#6f5842",
+    },
+    "02": {
+      bg: ["#f2eee8", "#d8c3a4"],
+      accent: "#8b6a49",
+      shape: "#efe5d4",
+      line: "#56463a",
+    },
+    "03": {
+      bg: ["#f8f1e6", "#cbb59b"],
+      accent: "#a37246",
+      shape: "#f2e3c8",
+      line: "#5d4740",
+    },
+    "04": {
+      bg: ["#f4efe8", "#d8c8b0"],
+      accent: "#7a6347",
+      shape: "#e5d3b3",
+      line: "#584a3d",
+    },
+    "05": {
+      bg: ["#f5f0ea", "#d7c1a2"],
+      accent: "#8a6244",
+      shape: "#d9b58d",
+      line: "#4b3f38",
+    },
+    "06": {
+      bg: ["#efe8df", "#d5b88d"],
+      accent: "#775d44",
+      shape: "#f5ebdd",
+      line: "#483e36",
+    },
+    "07": {
+      bg: ["#f4efe7", "#d5c0a3"],
+      accent: "#816548",
+      shape: "#e2c7a5",
+      line: "#4e4139",
+    },
+  } as const;
+
+  const palette = palettes[step as keyof typeof palettes] ?? palettes["01"];
+
+  return (
+    <svg viewBox="0 0 260 180" className="h-full w-full" role="img" aria-label={`Method step ${step} illustration`}>
+      <defs>
+        <linearGradient id={`bg-${step}`} x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stopColor={palette.bg[0]} />
+          <stop offset="100%" stopColor={palette.bg[1]} />
+        </linearGradient>
+      </defs>
+      <rect width="260" height="180" rx="18" fill={`url(#bg-${step})`} />
+      <rect x="26" y="28" width="208" height="126" rx="12" fill="#f7f3ee" opacity="0.78" stroke={palette.line} strokeWidth="2" />
+      <rect x="40" y="44" width="80" height="70" rx="8" fill={palette.shape} opacity="0.95" />
+      <rect x="130" y="44" width="88" height="52" rx="8" fill="#f0e9df" stroke={palette.line} strokeWidth="1.6" />
+      <rect x="130" y="104" width="88" height="32" rx="8" fill="#e4d2b7" opacity="0.9" />
+      <path d="M52 122 L84 122 M52 132 L92 132 M52 142 L72 142" stroke={palette.line} strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M144 70 L175 70 M144 82 L198 82 M144 94 L186 94" stroke={palette.line} strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M154 52 L170 52" stroke={palette.accent} strokeWidth="4" strokeLinecap="round" />
+      <circle cx="204" cy="58" r="9" fill={palette.accent} opacity="0.7" />
+      <rect x="24" y="150" width="212" height="4" rx="2" fill={palette.line} opacity="0.4" />
+    </svg>
+  );
+}
 
 function MethodPage() {
   const d = useDict();
@@ -58,11 +127,16 @@ function MethodPage() {
           <div className="space-y-4">
             {steps.map((st) => (
               <div key={st.num} className="group rounded-3xl border border-border/80 bg-card p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-xs hover:border-primary/50 transition-all">
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-6 flex-1">
                   <div className="font-mono text-2xl font-bold text-accent group-hover:text-primary transition-colors">{st.num}</div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-serif text-xl sm:text-2xl font-bold">{st.title}</h3>
                     <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl">{st.desc}</p>
+                  </div>
+                </div>
+                <div className="w-full sm:w-[220px] shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-muted/40 shadow-sm">
+                  <div className="aspect-[13/8] w-full">
+                    <StepArtwork step={st.num} />
                   </div>
                 </div>
               </div>

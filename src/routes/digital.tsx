@@ -48,7 +48,6 @@ function DigitalPage() {
                   <Palette className="h-6 w-6" />
                 </div>
                 <div>
-                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">01 — BRAND & DESIGN</span>
                   <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{dig.sec1Title}</h2>
                 </div>
               </div>
@@ -113,7 +112,6 @@ function DigitalPage() {
                   <Globe className="h-6 w-6" />
                 </div>
                 <div>
-                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">02 — WEB & EXPERIENCES</span>
                   <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{dig.sec2Title}</h2>
                 </div>
               </div>
@@ -160,7 +158,6 @@ function DigitalPage() {
                   <Share2 className="h-6 w-6" />
                 </div>
                 <div>
-                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">03 — SOCIAL & ENGAGEMENT</span>
                   <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{dig.sec3Title}</h2>
                 </div>
               </div>
@@ -225,7 +222,7 @@ function DigitalPage() {
                   <Cpu className="h-6 w-6" />
                 </div>
                 <div>
-                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">04 — CUSTOM DIGITAL SOLUTIONS</span>
+                  {/* <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">04 — CUSTOM DIGITAL SOLUTIONS</span> */}
                   <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{dig.sec4Title}</h2>
                 </div>
               </div>

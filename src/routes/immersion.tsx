@@ -48,7 +48,6 @@ function ImmersionPage() {
                   <Palette className="h-6 w-6" />
                 </div>
                 <div>
-                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">01 — 3D & IMMERSIVE REALITY</span>
                   <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{imm.sec1Title}</h2>
                 </div>
               </div>
@@ -113,7 +112,6 @@ function ImmersionPage() {
                   <Globe className="h-6 w-6" />
                 </div>
                 <div>
-                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">02 — VIRTUAL 360° VISITS</span>
                   <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{imm.sec2Title}</h2>
                 </div>
               </div>
@@ -160,7 +158,6 @@ function ImmersionPage() {
                   <Share2 className="h-6 w-6" />
                 </div>
                 <div>
-                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">03 — SPATIAL VOLUMES & LIGHTING</span>
                   <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{imm.sec3Title}</h2>
                 </div>
               </div>
@@ -205,62 +202,6 @@ function ImmersionPage() {
                 alt={imm.sec3Title}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
-            </div>
-          </div>
-
-          {/* 04. DIGITAL TOOLS */}
-          <div className="rounded-[2rem] border border-border/80 bg-card p-6 sm:p-8 lg:p-10 shadow-sm hover:shadow-xl transition-all duration-300 grid gap-8 lg:grid-cols-12 items-center group">
-            {/* Desktop Image (Left) */}
-            <div className="hidden lg:block lg:col-span-6 relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-md">
-              <img
-                src="/showcase/panorama_Contemporary.png"
-                alt={imm.sec4Title}
-                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-            </div>
-
-            <div className="lg:col-span-6 space-y-5">
-              <div className="flex items-center gap-3.5">
-                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-colors group-hover:bg-primary group-hover:text-primary-foreground shadow-xs">
-                  <Cpu className="h-6 w-6" />
-                </div>
-                <div>
-                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">04 — CUSTOM DIGITAL SOLUTIONS</span>
-                  <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{imm.sec4Title}</h2>
-                </div>
-              </div>
-
-              {/* Mobile image preview */}
-              <div className="lg:hidden relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-xs">
-                <img
-                  src="/showcase/panorama_Contemporary.png"
-                  alt={imm.sec4Title}
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-
-              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                {imm.sec4Desc}
-              </p>
-
-              <div className="grid grid-cols-2 gap-2.5 pt-2">
-                <div className="flex items-center gap-2 text-xs font-medium text-foreground/90">
-                  <CheckCircle2 className="h-4 w-4 text-[#c8a870] shrink-0" />
-                  <span>{lang === "fr" ? "Configurateurs de matériaux" : "Material Configurators"}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs font-medium text-foreground/90">
-                  <CheckCircle2 className="h-4 w-4 text-[#c8a870] shrink-0" />
-                  <span>{lang === "fr" ? "Outils de plans interactifs" : "Interactive Floor Plans"}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs font-medium text-foreground/90">
-                  <CheckCircle2 className="h-4 w-4 text-[#c8a870] shrink-0" />
-                  <span>{lang === "fr" ? "Portails clients & Suivi" : "Client Portals & Progress"}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs font-medium text-foreground/90">
-                  <CheckCircle2 className="h-4 w-4 text-[#c8a870] shrink-0" />
-                  <span>{lang === "fr" ? "Calculateurs d'estimations" : "Budget Calculators"}</span>
-                </div>
-              </div>
             </div>
           </div>
 
