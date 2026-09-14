@@ -2,6 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useDict, useI18n } from "@/lib/i18n";
 import { ArrowUpRight, Palette, Globe, Share2, Cpu, Eye, CheckCircle2, Sparkles } from "lucide-react";
 
+import websiteImage from "@/assets/digital/WEBSITE.png";
+import socialMediaImage from "@/assets/digital/SOCIAL MEDIA.png";
+import digitalToolsImage from "@/assets/digital/DIGITAL TOOLS.png";
+
 export const Route = createFileRoute("/digital")({
   component: DigitalPage,
 });
@@ -100,7 +104,7 @@ function DigitalPage() {
             {/* Desktop Image (Left) */}
             <div className="hidden lg:block lg:col-span-6 relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-md">
               <img
-                src="/moodboards/moodbord-1.jpg"
+                src={websiteImage}
                 alt={dig.sec2Title}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -119,7 +123,7 @@ function DigitalPage() {
               {/* Mobile image preview */}
               <div className="lg:hidden relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-xs">
                 <img
-                  src="/moodboards/moodbord-1.jpg"
+                  src={websiteImage}
                   alt={dig.sec2Title}
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
@@ -165,7 +169,7 @@ function DigitalPage() {
               {/* Mobile image preview */}
               <div className="lg:hidden relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-xs">
                 <img
-                  src="/moodboards/moodbord-2.jpg"
+                  src={socialMediaImage}
                   alt={dig.sec3Title}
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
@@ -198,7 +202,7 @@ function DigitalPage() {
             {/* Desktop Image */}
             <div className="hidden lg:block lg:col-span-6 relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-md">
               <img
-                src="/moodboards/moodbord-2.jpg"
+                src={socialMediaImage}
                 alt={dig.sec3Title}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -210,7 +214,7 @@ function DigitalPage() {
             {/* Desktop Image (Left) */}
             <div className="hidden lg:block lg:col-span-6 relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-md">
               <img
-                src="/showcase/afterContemporary.png"
+                src={digitalToolsImage}
                 alt={dig.sec4Title}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -230,7 +234,7 @@ function DigitalPage() {
               {/* Mobile image preview */}
               <div className="lg:hidden relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-xs">
                 <img
-                  src="/showcase/afterContemporary.png"
+                  src={digitalToolsImage}
                   alt={dig.sec4Title}
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
