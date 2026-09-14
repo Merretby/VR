@@ -17,6 +17,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DigitalRouteImport } from './routes/digital'
 import { Route as FitoutRouteImport } from './routes/fitout'
 import { Route as HealthcareRouteImport } from './routes/healthcare'
+import { Route as ImmersionRouteImport } from './routes/immersion'
 import { Route as MeasurementsRouteImport } from './routes/measurements'
 import { Route as MethodRouteImport } from './routes/method'
 import { Route as PackagesRouteImport } from './routes/packages'
@@ -72,6 +73,11 @@ const FitoutRoute = FitoutRouteImport.update({
 const HealthcareRoute = HealthcareRouteImport.update({
   id: '/healthcare',
   path: '/healthcare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImmersionRoute = ImmersionRouteImport.update({
+  id: '/immersion',
+  path: '/immersion',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MeasurementsRoute = MeasurementsRouteImport.update({
@@ -164,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/digital': typeof DigitalRoute
   '/fitout': typeof FitoutRoute
   '/healthcare': typeof HealthcareRoute
+  '/immersion': typeof ImmersionRoute
   '/measurements': typeof MeasurementsRoute
   '/method': typeof MethodRoute
   '/packages': typeof PackagesRoute
@@ -190,6 +197,7 @@ export interface FileRoutesByTo {
   '/digital': typeof DigitalRoute
   '/fitout': typeof FitoutRoute
   '/healthcare': typeof HealthcareRoute
+  '/immersion': typeof ImmersionRoute
   '/measurements': typeof MeasurementsRoute
   '/method': typeof MethodRoute
   '/packages': typeof PackagesRoute
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/digital': typeof DigitalRoute
   '/fitout': typeof FitoutRoute
   '/healthcare': typeof HealthcareRoute
+  '/immersion': typeof ImmersionRoute
   '/measurements': typeof MeasurementsRoute
   '/method': typeof MethodRoute
   '/packages': typeof PackagesRoute
@@ -245,6 +254,7 @@ export interface FileRouteTypes {
     | '/digital'
     | '/fitout'
     | '/healthcare'
+    | '/immersion'
     | '/measurements'
     | '/method'
     | '/packages'
@@ -271,6 +281,7 @@ export interface FileRouteTypes {
     | '/digital'
     | '/fitout'
     | '/healthcare'
+    | '/immersion'
     | '/measurements'
     | '/method'
     | '/packages'
@@ -297,6 +308,7 @@ export interface FileRouteTypes {
     | '/digital'
     | '/fitout'
     | '/healthcare'
+    | '/immersion'
     | '/measurements'
     | '/method'
     | '/packages'
@@ -324,6 +336,7 @@ export interface RootRouteChildren {
   DigitalRoute: typeof DigitalRoute
   FitoutRoute: typeof FitoutRoute
   HealthcareRoute: typeof HealthcareRoute
+  ImmersionRoute: typeof ImmersionRoute
   MeasurementsRoute: typeof MeasurementsRoute
   MethodRoute: typeof MethodRoute
   PackagesRoute: typeof PackagesRoute
@@ -398,6 +411,13 @@ declare module '@tanstack/react-router' {
       path: '/healthcare'
       fullPath: '/healthcare'
       preLoaderRoute: typeof HealthcareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/immersion': {
+      id: '/immersion'
+      path: '/immersion'
+      fullPath: '/immersion'
+      preLoaderRoute: typeof ImmersionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/measurements': {
@@ -524,6 +544,7 @@ const rootRouteChildren: RootRouteChildren = {
   DigitalRoute: DigitalRoute,
   FitoutRoute: FitoutRoute,
   HealthcareRoute: HealthcareRoute,
+  ImmersionRoute: ImmersionRoute,
   MeasurementsRoute: MeasurementsRoute,
   MethodRoute: MethodRoute,
   PackagesRoute: PackagesRoute,

@@ -131,7 +131,16 @@ export function AppHeader() {
               inactiveProps={{ className: "text-white/80 hover:text-white hover:bg-white/10" }}
               className="rounded-full px-4 py-2 transition-all duration-200 whitespace-nowrap shrink-0"
             >
-              Digital & Immersion
+              Digital
+            </Link>
+
+            <Link
+              to="/immersion"
+              activeProps={{ className: "bg-[#c8a870] text-[#0C2D3B] font-bold shadow-xs" }}
+              inactiveProps={{ className: "text-white/80 hover:text-white hover:bg-white/10" }}
+              className="rounded-full px-4 py-2 transition-all duration-200 whitespace-nowrap shrink-0"
+            >
+              Immersion & 360°
             </Link>
 
             <Link
@@ -257,7 +266,16 @@ export function AppHeader() {
               onClick={closeMenu}
               className="flex items-center justify-between p-3.5 rounded-2xl text-base font-bold text-white hover:bg-white/10 transition-colors"
             >
-              <span>Digital & Immersion</span>
+              <span>Digital</span>
+              <ChevronRight className="h-4 w-4 text-white/60" />
+            </Link>
+
+            <Link
+              to="/immersion"
+              onClick={closeMenu}
+              className="flex items-center justify-between p-3.5 rounded-2xl text-base font-bold text-white hover:bg-white/10 transition-colors"
+            >
+              <span>Immersion & 360°</span>
               <ChevronRight className="h-4 w-4 text-white/60" />
             </Link>
 

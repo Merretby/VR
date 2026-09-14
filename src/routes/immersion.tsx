@@ -2,14 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useDict, useI18n } from "@/lib/i18n";
 import { ArrowUpRight, Palette, Globe, Share2, Cpu, Eye, CheckCircle2, Sparkles } from "lucide-react";
 
-export const Route = createFileRoute("/digital")({
-  component: DigitalPage,
+export const Route = createFileRoute("/immersion")({
+  component: ImmersionPage,
 });
 
-function DigitalPage() {
+function ImmersionPage() {
   const d = useDict();
   const { lang } = useI18n();
-  const dig = d.digital;
+  const imm = d.immersion;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
@@ -17,13 +17,13 @@ function DigitalPage() {
         
         {/* HERO SECTION */}
         <section className="space-y-6 max-w-4xl border-b border-border/60 pb-12">
-          {dig.label && <span className="label-mono text-accent">{dig.label}</span>}
+          {imm.label && <span className="label-mono text-accent">{imm.label}</span>}
           <h1 className="font-serif text-4xl sm:text-6xl font-bold tracking-tight text-foreground leading-[1.12]">
-            {dig.titleA}<br />
-            <span className="italic font-normal text-muted-foreground">{dig.titleB}</span>
+            {imm.titleA}<br />
+            <span className="italic font-normal text-muted-foreground">{imm.titleB}</span>
           </h1>
           <p className="text-base sm:text-xl text-muted-foreground font-normal leading-relaxed">
-            {dig.subtitle}
+            {imm.subtitle}
           </p>
 
           <div className="pt-2">
@@ -31,7 +31,7 @@ function DigitalPage() {
               to="/contact"
               className="inline-flex items-center gap-2.5 rounded-full bg-primary px-8 py-4 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-lg hover:bg-primary/90 hover:scale-105 transition-all"
             >
-              <span>{dig.btnTalk}</span>
+              <span>{imm.btnTalk}</span>
               <ArrowUpRight className="h-4 w-4" />
             </Link>
           </div>
@@ -48,22 +48,22 @@ function DigitalPage() {
                   <Palette className="h-6 w-6" />
                 </div>
                 <div>
-                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">01 — BRAND & DESIGN</span>
-                  <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{dig.sec1Title}</h2>
+                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">01 — 3D & IMMERSIVE REALITY</span>
+                  <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{imm.sec1Title}</h2>
                 </div>
               </div>
 
               {/* Mobile image preview */}
               <div className="lg:hidden relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-xs">
                 <img
-                  src="/moodboards/moodbord.jpg"
-                  alt={dig.sec1Title}
+                  src="/showcase/panorama_luxury.png"
+                  alt={imm.sec1Title}
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
 
               <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                {dig.sec1Desc}
+                {imm.sec1Desc}
               </p>
 
               <div className="grid grid-cols-2 gap-2.5 pt-2">
@@ -89,8 +89,8 @@ function DigitalPage() {
             {/* Desktop Image */}
             <div className="hidden lg:block lg:col-span-6 relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-md">
               <img
-                src="/moodboards/moodbord.jpg"
-                alt={dig.sec1Title}
+                src="/showcase/panorama_luxury.png"
+                alt={imm.sec1Title}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             </div>
@@ -101,8 +101,8 @@ function DigitalPage() {
             {/* Desktop Image (Left) */}
             <div className="hidden lg:block lg:col-span-6 relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-md">
               <img
-                src="/moodboards/moodbord-1.jpg"
-                alt={dig.sec2Title}
+                src="/showcase/panorama_japandi.png"
+                alt={imm.sec2Title}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             </div>
@@ -113,22 +113,22 @@ function DigitalPage() {
                   <Globe className="h-6 w-6" />
                 </div>
                 <div>
-                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">02 — WEB & EXPERIENCES</span>
-                  <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{dig.sec2Title}</h2>
+                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">02 — VIRTUAL 360° VISITS</span>
+                  <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{imm.sec2Title}</h2>
                 </div>
               </div>
 
               {/* Mobile image preview */}
               <div className="lg:hidden relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-xs">
                 <img
-                  src="/moodboards/moodbord-1.jpg"
-                  alt={dig.sec2Title}
+                  src="/showcase/panorama_japandi.png"
+                  alt={imm.sec2Title}
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
 
               <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                {dig.sec2Desc}
+                {imm.sec2Desc}
               </p>
 
               <div className="grid grid-cols-2 gap-2.5 pt-2">
@@ -160,8 +160,8 @@ function DigitalPage() {
                   <Share2 className="h-6 w-6" />
                 </div>
                 <div>
-                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">03 — SOCIAL & ENGAGEMENT</span>
-                  <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{dig.sec3Title}</h2>
+                  <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">03 — SPATIAL VOLUMES & LIGHTING</span>
+                  <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{imm.sec3Title}</h2>
                 </div>
               </div>
 
@@ -169,13 +169,13 @@ function DigitalPage() {
               <div className="lg:hidden relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-xs">
                 <img
                   src="/moodboards/moodbord-2.jpg"
-                  alt={dig.sec3Title}
+                  alt={imm.sec3Title}
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
 
               <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                {dig.sec3Desc}
+                {imm.sec3Desc}
               </p>
 
               <div className="grid grid-cols-2 gap-2.5 pt-2">
@@ -202,7 +202,7 @@ function DigitalPage() {
             <div className="hidden lg:block lg:col-span-6 relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-md">
               <img
                 src="/moodboards/moodbord-2.jpg"
-                alt={dig.sec3Title}
+                alt={imm.sec3Title}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             </div>
@@ -213,8 +213,8 @@ function DigitalPage() {
             {/* Desktop Image (Left) */}
             <div className="hidden lg:block lg:col-span-6 relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-md">
               <img
-                src="/showcase/afterContemporary.png"
-                alt={dig.sec4Title}
+                src="/showcase/panorama_Contemporary.png"
+                alt={imm.sec4Title}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             </div>
@@ -226,21 +226,21 @@ function DigitalPage() {
                 </div>
                 <div>
                   <span className="label-mono text-accent block text-[11px] font-bold tracking-widest">04 — CUSTOM DIGITAL SOLUTIONS</span>
-                  <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{dig.sec4Title}</h2>
+                  <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{imm.sec4Title}</h2>
                 </div>
               </div>
 
               {/* Mobile image preview */}
               <div className="lg:hidden relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-xs">
                 <img
-                  src="/showcase/afterContemporary.png"
-                  alt={dig.sec4Title}
+                  src="/showcase/panorama_Contemporary.png"
+                  alt={imm.sec4Title}
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
 
               <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                {dig.sec4Desc}
+                {imm.sec4Desc}
               </p>
 
               <div className="grid grid-cols-2 gap-2.5 pt-2">
@@ -268,15 +268,15 @@ function DigitalPage() {
 
         {/* POUR TOUS LES PROJETS */}
         <section className="rounded-3xl border border-border/80 bg-secondary/30 p-8 sm:p-10 text-center space-y-3">
-          {dig.typoLabel && <span className="label-mono text-accent">{dig.typoLabel}</span>}
-          <p className="font-serif text-xl sm:text-2xl font-bold text-foreground">{dig.typoTitle}</p>
-          <p className="text-xs sm:text-sm text-muted-foreground font-medium max-w-2xl mx-auto">{dig.typoDesc}</p>
+          {imm.typoLabel && <span className="label-mono text-accent">{imm.typoLabel}</span>}
+          <p className="font-serif text-xl sm:text-2xl font-bold text-foreground">{imm.typoTitle}</p>
+          <p className="text-xs sm:text-sm text-muted-foreground font-medium max-w-2xl mx-auto">{imm.typoDesc}</p>
         </section>
 
         {/* CTA */}
         <section className="text-center pt-4">
           <div className="rounded-[2.5rem] border border-primary/30 bg-primary/5 p-8 sm:p-12 space-y-6">
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground">{dig.ctaTitle}</h2>
+            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-foreground">{imm.ctaTitle}</h2>
             <Link
               to="/contact"
               className="inline-flex items-center gap-3 rounded-full bg-primary px-8 py-4 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-lg hover:bg-primary/90 hover:scale-105 transition-all"

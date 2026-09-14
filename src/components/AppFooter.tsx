@@ -64,7 +64,8 @@ export function AppFooter() {
               <li><Link to="/projects" className="hover:text-white transition-colors">{d.header?.projects ?? "Nos projets"}</Link></li>
               <li><Link to="/renovation" className="hover:text-white transition-colors">{d.header?.renovation ?? "Rénovation & Transformation"}</Link></li>
               <li><Link to="/fitout" className="hover:text-white transition-colors">{d.header?.fitout ?? "Aménagement & Sur-mesure"}</Link></li>
-              <li><Link to="/digital" className="hover:text-white transition-colors">{d.header?.digital ?? "Digital & Immersion"}</Link></li>
+              <li><Link to="/digital" className="hover:text-white transition-colors">{d.header?.digital ?? "Digital"}</Link></li>
+              <li><Link to="/immersion" className="hover:text-white transition-colors">{d.header?.immersion ?? "Immersion & 360°"}</Link></li>
               <li><Link to="/packages" className="hover:text-white transition-colors">{d.header?.packages ?? "Nos formules"}</Link></li>
               <li><Link to="/method" className="hover:text-white transition-colors">{d.header?.method ?? "Notre méthode"}</Link></li>
               <li><Link to="/healthcare" className="hover:text-white transition-colors">{d.header?.healthcare ?? "Professionnels de santé"}</Link></li>
